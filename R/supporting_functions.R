@@ -302,6 +302,9 @@ b.est <- function(A, Z, J, KM, w.constr, V, QQ, opt.list) {
 u.des.prep <- function(B, C, u.order, u.lags, coig.data, T0.tot, M, constant,
                        index, index.w, features, u.design, res) {
   
+  # Extract feature id from rownames of B
+  feature.id <- unlist(purrr::map(stringr::str_split(rownames(B), "\\."), 1))
+  
   ## Construct the polynomial terms in B
   if (u.order == 0) {                # Simple mean
     
@@ -313,15 +316,11 @@ u.des.prep <- function(B, C, u.order, u.lags, coig.data, T0.tot, M, constant,
       
       B.diff   <- NULL
       
-      # Extract feature id from rownames of B
-      feature.id <- unlist(purrr::map(stringr::str_split(rownames(B), "\\."), 1))
-      
       # Create first differences feature-by-feature of the matrix B (not of C!!)
       for (feature in features) {
         BB       <- B[feature.id == feature,]
         B.diff   <- rbind(B.diff, BB - dplyr::lag(BB))
       }
-      
       u.des.0 <- cbind(B.diff, C)[, index, drop=FALSE]    # combine with C
       
     } else if (coig.data == FALSE) {
@@ -353,9 +352,6 @@ u.des.prep <- function(B, C, u.order, u.lags, coig.data, T0.tot, M, constant,
     if (coig.data == TRUE) {
       # Take first differences of B
       B.diff   <- NULL
-      
-      # Extract feature id from rownames of B
-      feature.id <- unlist(purrr::map(stringr::str_split(rownames(B), "\\."), 1))
       
       # Create first differences feature-by-feature of the matrix B (not of C!!)
       for (feature in features) {
@@ -439,7 +435,7 @@ e.des.prep <- function(B, C, P, e.order, e.lags, res, sc.pred, Y.donors, out.fea
         # Create first differences of the first feature (outcome) of the matrix B (not of C!!)
         BB       <- B[feature.id == features[1],]
         B.diff   <- rbind(B.diff, BB - dplyr::lag(BB))
-        e.des.0 <- cbind(B.diff, C)[, index, drop=FALSE]
+        e.des.0 <- cbind(B.diff, C[feature.id == features[1],])[, index, drop=FALSE]
 
         ## Take first differences of P
         
@@ -454,7 +450,7 @@ e.des.prep <- function(B, C, P, e.order, e.lags, res, sc.pred, Y.donors, out.fea
         e.des.1  <- P.diff
         
       } else if (coig.data == FALSE) {
-        e.des.0 <- cbind(B, C)[, index, drop = FALSE]
+        e.des.0 <- cbind(B, C)[feature.id == features[1], index, drop = FALSE]
         e.des.1 <- P[, index, drop = FALSE]
       }
 
@@ -582,14 +578,14 @@ scpi.in <- function(xt, beta, Q, G, J, KM, p.int, QQ, dire, p, lb, w.lb.est, w.u
       
       prob      <- CVXR::Problem(objective, constraints)
       prob_data <- CVXR::get_problem_data(prob, solver = "ECOS")
-      ECOS_dims <- ECOS.dims_to_solver_dict(prob_data$data[["dims"]])
+      ECOS_dims <- CVXR::ECOS.dims_to_solver_dict(prob_data$data[["dims"]])
       solver_output <- ECOSolveR::ECOS_csolve(c = prob_data$data[["c"]],
                                               G = prob_data$data[["G"]],
                                               h = prob_data$data[["h"]],
                                               dims = ECOS_dims,
                                               A = prob_data$data[["A"]],
                                               b = prob_data$data[["b"]])
-      sol      <- unpack_results(prob, solver_output, prob_data$chain, prob_data$inverse_data)
+      sol      <- CVXR::unpack_results(prob, solver_output, prob_data$chain, prob_data$inverse_data)
       alert    <- sol$status != "optimal"
       
       if (alert == TRUE) {
@@ -666,14 +662,14 @@ scpi.in <- function(xt, beta, Q, G, J, KM, p.int, QQ, dire, p, lb, w.lb.est, w.u
       prob        <- CVXR::Problem(objective, constraints)
       prob        <- CVXR::Problem(objective, constraints)
       prob_data <- CVXR::get_problem_data(prob, solver = "ECOS")
-      ECOS_dims <- ECOS.dims_to_solver_dict(prob_data$data[["dims"]])
+      ECOS_dims <- CVXR::ECOS.dims_to_solver_dict(prob_data$data[["dims"]])
       solver_output <- ECOSolveR::ECOS_csolve(c = prob_data$data[["c"]],
                                               G = prob_data$data[["G"]],
                                               h = prob_data$data[["h"]],
                                               dims = ECOS_dims,
                                               A = prob_data$data[["A"]],
                                               b = prob_data$data[["b"]])
-      sol      <- unpack_results(prob, solver_output, prob_data$chain, prob_data$inverse_data)
+      sol      <- CVXR::unpack_results(prob, solver_output, prob_data$chain, prob_data$inverse_data)
       alert    <- sol$status != "optimal"
 
       if (alert == TRUE) {
@@ -825,7 +821,7 @@ checkConstraints <- function(nloptr.obj, dir, tol_eq, tol_ineq) {
 }
 
 # Prediction interval, for e
-scpi.out <- function(res, x, eval, e.method, alpha, e.lb.est, e.ub.est, verbose) {
+scpi.out <- function(res, x, eval, e.method, alpha, e.lb.est, e.ub.est) {
 
   neval <- nrow(eval)
   e.1 <- e.2 <- lb <- ub <- NA
@@ -834,10 +830,10 @@ scpi.out <- function(res, x, eval, e.method, alpha, e.lb.est, e.ub.est, verbose)
 
     if (e.method == "gaussian") {
       x.more   <- rbind(eval, x)
-      fit      <- predict(y=res, x=x, eval=x.more, type="lm", verbose = verbose)
+      fit      <- predict(y=res, x=x, eval=x.more, type="lm")
       e.mean   <- fit[1:neval]
       res.fit  <- fit[-(1:neval)]
-      var.pred <- predict(y=log((res-res.fit)^2), x=x, eval=x.more, type="lm", verbose = verbose)
+      var.pred <- predict(y=log((res-res.fit)^2), x=x, eval=x.more, type="lm")
       e.sig2   <- exp(var.pred[1:neval])
 
       eps <- sqrt(-log(alpha)*2*e.sig2)
@@ -850,11 +846,11 @@ scpi.out <- function(res, x, eval, e.method, alpha, e.lb.est, e.ub.est, verbose)
 
     } else if (e.method == "ls") {
       x.more  <- rbind(eval, x)
-      fit     <- predict(y=res, x=x, eval=x.more, type="lm", verbose = verbose)
+      fit     <- predict(y=res, x=x, eval=x.more, type="lm")
       e.mean  <- fit[1:neval]
       res.fit <- fit[-(1:neval)]
 
-      var.pred <- predict(y=log((res-res.fit)^2), x=x, eval=x.more, type="lm", verbose = verbose)
+      var.pred <- predict(y=log((res-res.fit)^2), x=x, eval=x.more, type="lm")
       e.sig    <- sqrt(exp(var.pred[1:neval]))
       res.st   <- (res-res.fit)/sqrt(exp(var.pred[-(1:neval)]))
 
@@ -866,7 +862,7 @@ scpi.out <- function(res, x, eval, e.method, alpha, e.lb.est, e.ub.est, verbose)
       e.2 <- e.sig^2
       
     } else if (e.method == "qreg") {
-      e.pred  <- predict(y=res, x=x, eval=eval, type="qreg", tau=c(alpha, 1-alpha), verbose = verbose)
+      e.pred  <- predict(y=res, x=x, eval=eval, type="qreg", tau=c(alpha, 1-alpha))
       lb <- e.pred[,1]
       ub <- e.pred[,2]
 
@@ -887,23 +883,14 @@ sqrtm <- function(A) {
 }
 
 # conditional prediction
-predict <- function(y, x, eval, type="lm", tau=NULL, verbose) {
-  
-  if ((nrow(x) <= ncol(x)) & verbose) {
-    warning("Consider specifying a less complicated model for e. The number of observations used
-         to parametrically predict moments is smaller than the number of covariates used. Consider reducing either the number
-         of lags (e.lags) or the order of the polynomial (e.order)!")
-  }
+predict <- function(y, x, eval, type="lm", tau=NULL) {
   
   if (type == "lm") {
     betahat <- .lm.fit(x, y)$coeff
 
   } else if (type == "qreg") {
-    if (is.null(tau)) {
-      tau <- c(0.05, 0.95)
-    }
-
-    betahat <- rrq(y~x-1, tau=tau)$coeff
+    betahat <- cbind(Qtools::rrq(y~x-1, tau=tau[1])$coeff,
+                     Qtools::rrq(y~x-1, tau=tau[2])$coeff)
   }
   pred <- eval %*% betahat
   return(pred)
@@ -917,11 +904,11 @@ df.EST <- function(w.constr, w, A, B, J, KM){
     df <- J 
     
   } else if ((w.constr[["name"]] == "lasso") | ((w.constr[["p"]] == "L1") & (w.constr[["dir"]] == "<="))) {
-    df <- sum(w != 0) 
+    df <- sum(abs(w) >= 1e-6) 
     
   } else if ((w.constr[["name"]] == "simplex") | ((w.constr[["p"]] == "L1") & (w.constr[["dir"]] == "=="))) {
-    df <- sum(w != 0) - 1 
-  
+    df <- sum(abs(w) >= 1e-6) - 1
+    
   } else if ((w.constr[["name"]] == "ridge") | (w.constr[["p"]] == "L2")) {
     d <- svd(B)$d
     d[d < 0] <- 0
@@ -934,9 +921,6 @@ df.EST <- function(w.constr, w, A, B, J, KM){
   
   return(df)
 }
-
-
-
 
 
 u.sigma.est <- function(u.mean, u.sigma, res, Z, V, index, TT, M, df) {
@@ -1063,8 +1047,8 @@ regularize.check <- function(w, index.w, rho, verbose) {
   if (sum(index.w) == 0) {
     index.w <- rank(-w) <= 1
     if (verbose){
-      cat("Warning: regularization paramater was too high (", round(rho, digits = 3), "). ", sep = "")
-      cat("We set it so that at least one component in w is non-zero.")
+      warning(paste0("Regularization paramater was too high (", round(rho, digits = 3), "). ",
+                     "We set it so that at least one component in w is non-zero.", immediate. = TRUE, call. = FALSE))
     }
   }
   return(index.w)

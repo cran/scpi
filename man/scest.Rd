@@ -79,7 +79,7 @@ The second list is labeled 'est.results' and contains estimation results.
 \item{w.constr}{a list containing the specifics of the constraint set used on the weights.}
 }
 \description{
-The command implements estimation procedures for Synthetic Control (SC) methods using least square, lasso, ridge, or simplex-type constraints according to
+The command implements estimation procedures for Synthetic Control (SC) methods using least square, lasso, ridge, or simplex-type constraints. For more information see
 \href{https://cattaneo.princeton.edu/papers/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, M. D., Feng, Y., & Titiunik, R. (2021)}.
 
 Companion \href{https://www.stata.com/}{Stata} and \href{https://www.python.org/}{Python} packages are described in \href{https://arxiv.org/abs/2202.05984}{Cattaneo, Feng, Palomba, and Titiunik (2022)}.
@@ -90,7 +90,7 @@ Related Stata, R, and Python packages useful for inference in SC designs are des
 
 \href{ https://nppackages.github.io/scpi/}{ https://nppackages.github.io/scpi/}
 
-For an introduction to synthetic control methods, see \href{https://economics.mit.edu/files/17847}{Abadie (2021)} and references therein.
+For an introduction to synthetic control methods, see \href{https://www.aeaweb.org/articles?id=10.1257/jel.20191450}{Abadie (2021)} and references therein.
 }
 \details{
 \itemize{
@@ -157,7 +157,7 @@ result <- scest(df, w.constr = list(lb = 0, dir = "==", p = "L1", Q = 1))
 }
 \references{
 \itemize{
-\item{\href{https://economics.mit.edu/files/17847}{Abadie, A. (2021)}. Using synthetic controls: Feasibility, data requirements, and methodological aspects.
+\item{\href{https://www.aeaweb.org/articles?id=10.1257/jel.20191450}{Abadie, A. (2021)}. Using synthetic controls: Feasibility, data requirements, and methodological aspects.
 \emph{Journal of Economic Literature}, 59(2), 391-425.}
 \item{\href{https://cattaneo.princeton.edu/papers/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, M. D., Feng, Y., & Titiunik, R.
 (2021)}. Prediction intervals for synthetic control methods. \emph{Journal of the American Statistical Association}, 116(536), 1865-1880.}

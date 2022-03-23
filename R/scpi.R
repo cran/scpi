@@ -2,8 +2,8 @@
 
 #' @title Prediction Intervals for Synthetic Control Methods
 #'
-#' @description The command implements estimation and inference procedures for Synthetic Control (SC) methods using least square, lasso, ridge, or simplex-type constraints according to
-#'  \href{https://cattaneo.princeton.edu/papers/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, M. D., Feng, Y., & Titiunik, R. (2021)}. \code{\link{scpi}} returns the estimated 
+#' @description The command implements estimation and inference procedures for Synthetic Control (SC) methods using least square, lasso, ridge, or simplex-type constraints. Uncertainty is quantified using prediction
+#' intervals according to \href{https://cattaneo.princeton.edu/papers/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, M. D., Feng, Y., & Titiunik, R. (2021)}. \code{\link{scpi}} returns the estimated 
 #' post-treatment series for the synthetic unit through the command \code{\link{scest}} and quantifies in-sample and out-of-sample uncertainty to provide confidence intervals
 #' for each point estimate.
 #' 
@@ -15,7 +15,7 @@
 #' 
 #' \href{ https://nppackages.github.io/scpi/}{ https://nppackages.github.io/scpi/}
 #' 
-#' For an introduction to synthetic control methods, see \href{https://economics.mit.edu/files/17847}{Abadie (2021)} and references therein. 
+#' For an introduction to synthetic control methods, see \href{https://www.aeaweb.org/articles?id=10.1257/jel.20191450}{Abadie (2021)} and references therein.
 #'
 #' @param data a class `scpi_data' object, obtained by calling \code{\link{scdata}}.
 #'
@@ -38,21 +38,29 @@
 #' with their own value for \code{rho}. Other options are described in the \strong{Details} section.
 #' @param rho.max a scalar indicating the maximum value attainable by the tuning parameter \code{rho}.
 #' @param u.missp a logical indicating if misspecification should be taken into account when dealing with \eqn{\mathbf{u}}.
-#' @param u.order a scalar that sets the order of the polynomial in \eqn{\mathbf{B}} when predicting moments of \eqn{\mathbf{u}}.
+#' @param u.order a scalar that sets the order of the polynomial in \eqn{\mathbf{B}} when predicting moments of \eqn{\mathbf{u}}. 
+#' The default is \code{u.order = 1}, however if there is risk of over-fitting, the command automatically sets it 
+#' to \code{u.order = 0}. See the \strong{Details} section for more information.
 #' @param u.lags a scalar that sets the number of lags of \eqn{\mathbf{B}} when predicting moments of \eqn{\mathbf{u}}.
+#' The default is \code{u.lags = 0}, however if there is risk of over-fitting, the command automatically sets it 
+#' to \code{u.lags = 0}. See the \strong{Details} section for more information.
 #' @param u.design a matrix with the same number of rows of \eqn{\mathbf{A}} and \eqn{\mathbf{B}} and whose columns specify the design matrix
 #' to be used when modeling the estimated pseudo-true residuals \eqn{\mathbf{u}}.
 #' @param u.sigma a string specifying the type of variance-covariance estimator to be used when estimating
 #'    the conditional variance of \eqn{\mathbf{u}}.
-#' @param u.alpha a scalar specifying the confidence level for in-sample uncertainty.
+#' @param u.alpha a scalar specifying the confidence level for in-sample uncertainty, i.e. 1 - \code{u.alpha} is the confidence level.
 #' @param e.method a string selecting the method to be used in quantifying out-of-sample uncertainty among:
 #'  "gaussian" which uses conditional subgaussian bounds; "ls" which specifies a location-scale model for \eqn{\mathbf{u}}; "qreg" which employs a
 #'  quantile regressions to get the conditional bounds; "all" uses each one of the previous methods.
 #' @param e.order a scalar that sets the order of the polynomial in \eqn{\mathbf{B}} when predicting moments of \eqn{\mathbf{e}}.
+#' The default is \code{e.order = 1}, however if there is risk of over-fitting, the command automatically sets it 
+#' to \code{e.order = 0}. See the \strong{Details} section for more information.
 #' @param e.lags a scalar that sets the number of lags of \eqn{\mathbf{B}} when predicting moments of \eqn{\mathbf{e}}.
+#' The default is \code{e.order = 1}, however if there is risk of over-fitting, the command automatically sets it 
+#' to \code{e.order = 0}. See the \strong{Details} section for more information.
 #' @param e.design a matrix with the same number of rows of \eqn{\mathbf{A}} and \eqn{\mathbf{B}} and whose columns specify the design matrix
 #' to be used when modeling the estimated out-of-sample residuals \eqn{\mathbf{e}}.
-#' @param e.alpha a scalar specifying the confidence level for out-of-sample uncertainty.
+#' @param e.alpha a scalar specifying the confidence level for out-of-sample uncertainty, i.e. 1 - \code{e.alpha} is the confidence level.
 #' @param sims a scalar providing the number of simulations to be used in quantifying in-sample uncertainty.
 #' @param plot a logical specifying whether \code{\link{scplot}} should be called and a plot saved in the current working directory. For more options see \code{\link{scplot}}.
 #' @param plot.name a string containing the name of the plot (the format is by default .png). For more options see \code{\link{scplot}}.
@@ -110,22 +118,28 @@
 #' \item{CI.all.ls}{a matrix containing the prediction intervals estimating out-of-sample uncertainty with a location-scale model.}
 #' \item{CI.all.qreg}{a matrix containing the prediction intervals estimating out-of-sample uncertainty with quantile regressions.}
 #' \item{Sigma}{a matrix containing the estimated (conditional) variance-covariance \eqn{\boldsymbol{\Sigma}}.}
-#' \item{u.mean}{a matrix containing the estimated (conditional) mean of the pseudo-residuals \eqn{u}.}
-#' \item{u.var}{a matrix containing the estimated (conditional) variance-covariance of the pseudo-residuals \eqn{u}.}
+#' \item{u.mean}{a matrix containing the estimated (conditional) mean of the pseudo-residuals \eqn{\mathbf{u}}.}
+#' \item{u.var}{a matrix containing the estimated (conditional) variance-covariance of the pseudo-residuals \eqn{\mathbf{u}}.}
 #' \item{e.mean}{a matrix containing the estimated (conditional) mean of the out-of-sample error \eqn{e}.}
 #' \item{e.var}{a matrix containing the estimated (conditional) variance of the out-of-sample error \eqn{e}.}
 #' \item{u.missp}{a logical indicating whether the model has been treated as misspecified or not.}
-#' \item{u.lags}{an integer containing the number of lags in B used in predicting moments of the pseudo-residuals \eqn{u}.}
-#' \item{u.order}{an integer containing the order of the polynomial in B used in predicting moments of the pseudo-residuals \eqn{u}.}
+#' \item{u.lags}{an integer containing the number of lags in B used in predicting moments of the pseudo-residuals \eqn{\mathbf{u}}.}
+#' \item{u.order}{an integer containing the order of the polynomial in B used in predicting moments of the pseudo-residuals \eqn{\mathbf{u}}.}
 #' \item{u.sigma}{a string indicating the estimator used for \code{Sigma}.}
-#' \item{u.user}{a logical indicating whether the design matrix to predict moments of \eqn{u} was user-provided.}
+#' \item{u.user}{a logical indicating whether the design matrix to predict moments of \eqn{\mathbf{u}} was user-provided.}
+#' \item{u.T}{a scalar indicating the number of observations used to predict moments of \eqn{\mathbf{u}}.}
+#' \item{u.params}{a scalar indicating the number of parameters used to predict moments of \eqn{\mathbf{u}}.}
+#' \item{u.D}{the design matrix used to predict moments of \eqn{\mathbf{u}},}
+#' \item{u.alpha}{a scalar determining the confidence level used for in-sample uncertainty, i.e. 1-\code{u.alpha} is the confidence level.}
 #' \item{e.method}{a string indicating the specification used to predict moments of the out-of-sample error \eqn{e}.}
 #' \item{e.lags}{an integer containing the number of lags in B used in predicting moments of the out-of-sample error \eqn{e}.}
 #' \item{e.order}{an integer containing the order of the polynomial in B used in predicting moments of the out-of-sample error \eqn{e}.}
 #' \item{e.user}{a logical indicating whether the design matrix to predict moments of \eqn{e} was user-provided.}
+#' \item{e.T}{a scalar indicating the number of observations used to predict moments of \eqn{\mathbf{u}}.}
+#' \item{e.params}{a scalar indicating the number of parameters used to predict moments of \eqn{\mathbf{u}}.}
+#' \item{e.alpha}{a scalar determining the confidence level used for out-of-sample uncertainty, i.e. 1-\code{e.alpha} is the confidence level.}
+#' \item{e.D}{the design matrix used to predict moments of \eqn{\mathbf{u}},}
 #' \item{rho}{an integer specifying the estimated regularizing parameter that imposes sparsity on the estimated vector of weights.}
-#' \item{u.alpha}{a scalar indicating the confidence level used for in-sample uncertainty.}
-#' \item{e.alpha}{a scalar indicating the confidence level used for out-of-sample uncertainty.}
 #' \item{sims}{an integer indicating the number of simulations used in quantifying in-sample uncertainty.}
 #' \item{failed.sims}{a matrix containing the number of failed simulations per post-treatment period to estimate lower and upper bounds.}
 #' 
@@ -180,19 +194,29 @@
 #'
 #' \item{\strong{In-sample uncertainty.} To quantify in-sample uncertainty it is necessary to model the pseudo-residuals \eqn{\mathbf{u}}.
 #' First of all, estimation of the first moment of \eqn{\mathbf{u}} can be controlled through
-#' the option \code{u.missp}. When \code{u.missp = FALSE}, then \eqn{\mathbf{E}[u\: |\: H]=0}. If instead \code{u.missp = TRUE},
-#' then \eqn{\mathbf{E}[u\: |\: H]} is estimated using a linear regression of
-#' \eqn{\widehat{\mathbf{u}}} on \eqn{H}. The default set of variables in \eqn{H} is composed of \eqn{\mathbf{B}} and \eqn{\mathbf{C}} and, if required,
-#' with lags (\code{u.lags}) and polynomials (\code{u.order}) of \eqn{\mathbf{B}}. The option \code{u.design} allows the user to provide an
-#' ad-hoc set of variables to form \eqn{H}. Regarding the second moment of \eqn{\mathbf{u}}, different estimators can be chosen:
+#' the option \code{u.missp}. When \code{u.missp = FALSE}, then \eqn{\mathbf{E}[u\: |\: \mathbf{D}_u]=0}. If instead \code{u.missp = TRUE},
+#' then \eqn{\mathbf{E}[u\: |\: \mathbf{D}_u]} is estimated using a linear regression of
+#' \eqn{\widehat{\mathbf{u}}} on \eqn{\mathbf{D}_u}. The default set of variables in \eqn{\mathbf{D}_u} is composed of \eqn{\mathbf{B}}, 
+#' \eqn{\mathbf{C}} and, if required, it is augmented with lags (\code{u.lags}) and polynomials (\code{u.order}) of \eqn{\mathbf{B}}. 
+#' The option \code{u.design} allows the user to provide an ad-hoc set of variables to form \eqn{\mathbf{D}_u}. 
+#' Regarding the second moment of \eqn{\mathbf{u}}, different estimators can be chosen:
 #' HC0, HC1, HC2, HC3, and HC4 using the option \code{u.sigma}.}
 #'
 #' \item{\strong{Out-of-sample uncertainty.} To quantify out-of-sample uncertainty it is necessary to model the out-of-sample residuals
-#' \eqn{\mathbf{e}} and estimate relevant moments. By default, the design matrix used during estimation \eqn{H} is composed of \eqn{\mathbf{B}} and \eqn{\mathbf{C}} and, if required,
-#' with lags (\code{e.lags}) and polynomials (\code{e.order}) of \eqn{\mathbf{B}}. The option \code{e.design} allows the user to provide an
-#' ad-hoc set of variables to form \eqn{H}. Finally, the option \code{e.method} allows the user to select one of three
-#' estimation methods: "gaussian" relies on conditional subgaussian bounds; "ls" estimates conditional bounds using a location-scale
-#' model; "qreg" uses conditional quantile regression of the residuals \eqn{\mathbf{e}} on \eqn{H}.}
+#' \eqn{\mathbf{e}} and estimate relevant moments. By default, the design matrix used during estimation \eqn{\mathbf{D}_e} is composed of the blocks in 
+#' \eqn{\mathbf{B}} and \eqn{\mathbf{C}} corresponding to the outcome variable. Moreover, if required by the user, \eqn{\mathbf{D}_e}
+#' is augmented with lags (\code{e.lags}) and polynomials (\code{e.order}) of \eqn{\mathbf{B}}. The option \code{e.design} allows the user to provide an
+#' ad-hoc set of variables to form \eqn{\mathbf{D}_e}. Finally, the option \code{e.method} allows the user to select one of three
+#' estimation methods: "gaussian" relies on conditional sub-Gaussian bounds; "ls" estimates conditional bounds using a location-scale
+#' model; "qreg" uses conditional quantile regression of the residuals \eqn{\mathbf{e}} on \eqn{\mathbf{D}_e}.}
+#' 
+#' \item{\strong{Residual Estimation Over-fitting.} To estimate conditional moments of \eqn{\mathbf{u}} and \eqn{e_t} 
+#' we rely on two design matrices, \eqn{\mathbf{D}_u} and \eqn{\mathbf{D}_e} (see above). Let \eqn{d_u} and \eqn{d_e} be the number of 
+#' columns in \eqn{\mathbf{D}_u} and \eqn{\mathbf{D}_e}, respectively. Assuming no missing values and balanced features, the
+#' number of observation used to estimate moments of \eqn{\mathbf{u}} is \eqn{T_0\cdot M}, whilst for moments of \eqn{e_t} is \eqn{T_0}.
+#' Our rule of thumb to avoid over-fitting is to check if \eqn{T_0\cdot M \geq d_u + 20} or \eqn{T_0 \geq d_e + 20}. If the 
+#' former condition is not satisfied we automatically set \code{u.order = u.lags = 0}, if instead the latter is not met 
+#' we automatically set \code{e.order = e.lags = 0}.}
 #' 
 #' \item{\strong{Algorithm Options.} The default is a sequential quadratic programming (SQP) algorithm for nonlinearly constrained gradient-based optimization 
 #' (\code{algorithm = 'NLOPTR_LD_SLSQP'}) for all cases not involving the L1 norm. 
@@ -214,7 +238,7 @@
 #'
 #' @references
 #' \itemize{
-#' \item{\href{https://economics.mit.edu/files/17847}{Abadie, A. (2021)}. Using synthetic controls: Feasibility, data requirements, and methodological aspects.
+#' \item{\href{https://www.aeaweb.org/articles?id=10.1257/jel.20191450}{Abadie, A. (2021)}. Using synthetic controls: Feasibility, data requirements, and methodological aspects.
 #' \emph{Journal of Economic Literature}, 59(2), 391-425.}
 #' \item{\href{https://cattaneo.princeton.edu/papers/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, M. D., Feng, Y., & Titiunik, R. 
 #' (2021)}. Prediction intervals for synthetic control methods. \emph{Journal of the American Statistical Association}, 116(536), 1865-1880.}
@@ -269,7 +293,7 @@ scpi  <- function(data,
                   verbose      = TRUE) {
 
 
-  if (class(data)[1] != "scpi_data") {
+  if (methods::is(data, "scpi_data") == FALSE) {
     stop("data should be the object returned by running scdata!!")
   }
 
@@ -502,22 +526,35 @@ scpi  <- function(data,
   ## Estimate E[u|H], V[u|H], and Sigma
   # If the model is thought to be misspecified then E[u|H] is estimated
   if (u.missp == TRUE) {
-    
-    u.des.0.na <- DUflexGet(u.des.0.na, C, f.id.na, M)
-    
-    if ((nrow(u.des.0.na) <= ncol(u.des.0.na)) & verbose) {
-      warning("Consider specifying a less complicated model for u. The number of observations used
-         to parametrically predict moments is smaller than the number of covariates used. Consider reducing either the number
-         of lags (u.lags) or the order of the polynomial (u.order)!")
-    }
+    T.u <- nrow(u.des.0.na) 
+
+    if ((T.u - 20) <= ncol(u.des.0.na)) {
+      u.des.0.na <- matrix(1, nrow = T.u, 1)
+      if (verbose & (u.order > 0 | u.lags > 0)) {
+        warning(paste0("One of u.order > 0 and u.lags > 0 was specified, however the current number of observations (",
+                      T.u,") used to estimate conditional moments of the pseudo-residuals ",
+                      "is not larger than the number of parameters used in estimation (",ncol(u.des.0.na),") plus 20. ",
+                      "To avoid over-fitting issues u.order and u.lags were set to 0."), immediate. = TRUE, call. = FALSE)
+      }
+      u.order <- 0
+      u.lags <- 0
+      
+    } else {
+      
+      u.des.0.na <- DUflexGet(u.des.0.na, C, f.id.na, M)
+      
+    }   
     
     u.mean <- lm(res.na ~ u.des.0.na - 1)$fitted.values 
+	params.u <- ncol(u.des.0.na)
     
   } else if (u.missp == FALSE) {
     u.mean <- 0
+    params.u <- 0
+    T.u <- 0
   }
 
-  # Estimate degrees of freedom to be used for V[u|H]
+  # Estimate degrees of freedom to be used for V[u|H] (note that w is pre-regularization)
   df <- df.EST(w.constr = w.constr, w = w, A = A, B = B, J = J, KM = KM)
   
   # Use HC inference to estimate V[u|H]
@@ -526,9 +563,8 @@ scpi  <- function(data,
   Sigma <- result$Sigma
   Omega <- result$Omega
 
-
   Sigma.root <- sqrtm(Sigma)
-
+  
   # Auxiliary logical values to estimate bounds for w
   w.lb.est <- TRUE
   w.ub.est <- TRUE
@@ -651,7 +687,7 @@ scpi  <- function(data,
             was not found! We suggest inspecting the magnitude of this issue by consulting the percentage of simulations
             that failed contained in YOUR_SCPI_OBJECT_NAME$inference.results$failed.sims. In case the number of 
             unsuccessful simulations is high, you might want to consider switching the solver or changing the 
-            stopping criteria of the algorithm through the option 'opt.list.inf'.", call. = FALSE)
+            stopping criteria of the algorithm through the option 'opt.list.inf'.", immediate. = TRUE, call. = FALSE)
   }
 
   ## Adjust for missing values
@@ -666,7 +702,7 @@ scpi  <- function(data,
   ## PIs for w
   sc.l.0 <- Y.post.fit + Wlb        # Left bound
   sc.r.0 <- Y.post.fit + Wub        # Right bound
-  len.0  <- sc.r.0 - sc.l.0          # Length
+  len.0  <- sc.r.0 - sc.l.0         # Length
 
   
   
@@ -690,10 +726,27 @@ scpi  <- function(data,
     if (all(is.na(e.bounds[, 1]) == FALSE)) e.lb.est <- FALSE
     if (all(is.na(e.bounds[, 2]) == FALSE)) e.ub.est <- FALSE
   }
+  
+  T.e <- nrow(e.des.0.na) 
+  
+  if ((T.e - 20) <= ncol(e.des.0.na)) {
+    e.des.0.na <- matrix(1, nrow = T.e, 1)
+    e.des.1 <- matrix(1, nrow = nrow(e.des.1), 1)
+    if (verbose & (e.order > 0 | e.lags > 0)) {
+      warning(paste0("One of e.order > 0 and e.lags > 0 was specified, however the current number of observations (",
+                    T.e,") used to estimate conditional moments of the out-of-sample error",
+                    " is not larger than the number of parameters used in estimation (",ncol(e.des.0.na),") plus 20.",
+                    " To avoid over-fitting issues e.order and e.lags were set to 0."), immediate. = TRUE, call. = FALSE)
+    }
+    e.order <- 0
+    e.lags <- 0
+  }  
+
+  params.e <- ncol(e.des.0.na)
 
   if (e.method == "gaussian" | e.method == "all") {
     pi.e   <- scpi.out(res = e.res.na, x = e.des.0.na, eval = e.des.1, e.method = "gaussian", alpha = e.alpha/2,
-                       e.lb.est = e.lb.est, e.ub.est =  e.ub.est, verbose = verbose)
+                       e.lb.est = e.lb.est, e.ub.est =  e.ub.est)
     
     # Overwrite with user's input
     if (e.lb.est == FALSE) pi.e$lb <- e.bounds[, 1]
@@ -708,7 +761,7 @@ scpi  <- function(data,
 
   if (e.method == "ls" | e.method == "all") {
     pi.e   <- scpi.out(res = e.res.na, x = e.des.0.na, eval = e.des.1, e.method = "ls", alpha = e.alpha/2,
-                       e.lb.est = e.lb.est, e.ub.est =  e.ub.est, verbose = verbose)
+                       e.lb.est = e.lb.est, e.ub.est =  e.ub.est)
     
     # Overwrite with user's input
     if (e.lb.est == FALSE) pi.e$lb <- e.bounds[, 1]
@@ -737,7 +790,7 @@ scpi  <- function(data,
       
     } else {
       pi.e   <- scpi.out(res = e.res.na, x = e.des.0.na, eval = e.des.1, e.method = "qreg", alpha = e.alpha/2,
-                         e.lb.est = e.lb.est, e.ub.est =  e.ub.est, verbose = verbose)
+                         e.lb.est = e.lb.est, e.ub.est =  e.ub.est)
 
       # Overwrite with user's input
       if (e.lb.est == FALSE) pi.e$lb <- e.bounds[, 1]
@@ -796,10 +849,16 @@ scpi  <- function(data,
                               u.order         = u.order,
                               u.sigma         = u.sigma,
                               u.user          = u.user,
+                              u.T             = T.u,
+                              u.params        = params.u,
+                              u.D             = u.des.0.na,
                               e.method        = e.method,
                               e.lags          = e.lags,
                               e.order         = e.order,
                               e.user          = e.user,
+                              e.T             = T.e,
+                              e.params        = params.e,
+                              e.D             = e.des.0.na,
                               rho             = rho,
                               u.alpha         = u.alpha,
                               e.alpha         = e.alpha,
@@ -811,7 +870,7 @@ scpi  <- function(data,
                   est.results        = sc.pred$est.results,
                   inference.results  = inference.results)
 
-  class(result) <- 'scpi'
+  class(result) <- 'scpi_scpi'
 
   #############################################################################
   #############################################################################

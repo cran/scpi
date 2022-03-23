@@ -32,7 +32,7 @@ print.scpi <- function(x, ...) {
   if (is.null(args[['already.est']])) {print_est <- TRUE} else {print_est <- FALSE}
   
   e.method  <- x$inference.results$e.method
-  Y.tr.post <- x$data$Y.post
+  Y.tr.post <- round(x$data$Y.post, 3)
   Y.sc.post <- round(x$est.results$Y.post.fit, 3)
   colnames(Y.tr.post) <- "Treated"
   colnames(Y.sc.post) <- "Synthetic"
@@ -129,6 +129,7 @@ summary.scpi <- function(object, ...) {
     cat(paste("     Order of polynomial (B)               ", object$inference.results$u.order,"\n", sep = ""))
     cat(paste("     Lags (B)                              ", object$inference.results$u.lags,  "\n", sep = ""))
     cat(paste("     Variance-Covariance Estimator         ", object$inference.results$u.sigma, "\n", sep = ""))  
+    cat(paste("     Parameters used to estimate moments   ", object$inference.results$u.params, "\n", sep = ""))  
   } else {
     cat(paste("In-sample Inference:                       ", "\n", sep = ""))
     cat("      User provided \n")    
@@ -138,8 +139,9 @@ summary.scpi <- function(object, ...) {
   if (object$inference.results$e.user == FALSE) {
     cat(paste("Out-of-sample Inference:                   ", "\n", sep = ""))
     cat(paste("     Method                                ", object$inference.results$e.method, "\n", sep = ""))
-    cat(paste("     Order of polynomial (B)               ", object$inference.results$u.order,  "\n", sep = ""))
-    cat(paste("     Lags (B)                              ", object$inference.results$u.lags,   "\n", sep = ""))
+    cat(paste("     Order of polynomial (B)               ", object$inference.results$e.order,  "\n", sep = ""))
+    cat(paste("     Lags (B)                              ", object$inference.results$e.lags,   "\n", sep = ""))
+    cat(paste("     Parameters used to estimate moments   ", object$inference.results$e.params, "\n", sep = ""))  
   } else {
     cat(paste("Out-of-sample Inference:                   ", "\n", sep = ""))
     cat("      User provided \n")    
