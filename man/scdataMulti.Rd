@@ -55,7 +55,8 @@ for which treatment effects have to be estimated for each treated unit.}
 \item{anticipation}{a scalar that indicates the number of periods of potential anticipation effects. Default is 0.}
 
 \item{effect}{a string indicating the type of treatment effect to be estimated. Options are: 'unit-time', which estimates treatment effects for each
-treated unit-time combination; 'unit', which estimates the treatment effect for each unit by averaging post-treatment features over time.}
+treated unit- post treatment period combination; 'unit', which estimates the treatment effect for each unit by averaging post-treatment features over time;
+'time', which estimates the average treatment effect on the treated at various horizons.}
 
 \item{constant}{a logical which controls the inclusion of a constant term across features. The default value is \code{FALSE}.}
 
@@ -157,7 +158,7 @@ df.unit <- scdataMulti(datager, id.var = id.var, outcome.var = outcome.var,
 \item{\href{https://cattaneo.princeton.edu/papers/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, M. D., Feng, Y., and Titiunik, R.
 (2021)}. Prediction intervals for synthetic control methods. \emph{Journal of the American Statistical Association}, 116(536), 1865-1880.}
 \item{\href{https://arxiv.org/abs/2202.05984}{Cattaneo, M. D., Feng, Y., Palomba F., and Titiunik, R. (2022).}
-scpi: Uncertainty Quantification for Synthetic Control Estimators, \emph{arXiv}:2202.05984.}
+scpi: Uncertainty Quantification for Synthetic Control Methods, \emph{arXiv}:2202.05984.}
 }
 }
 \seealso{
