@@ -15,6 +15,7 @@ scdataMulti(
   cointegrated.data = FALSE,
   post.est = NULL,
   units.est = NULL,
+  donors.est = NULL,
   anticipation = 0,
   effect = "unit-time",
   constant = FALSE,
@@ -40,21 +41,24 @@ literature, we presume that once a unit is treated it remains treated forever. I
 the command would not work as expected!}
 
 \item{features}{a list containing the names of the feature variables used for estimation.
-If features is specified, then outcome.var must be included in it. If this option is not specified the
-default is \code{features = outcome.var}.}
+If this option is not specified the default is \code{features = outcome.var}.}
 
 \item{cov.adj}{a list specifying the names of the covariates to be used for adjustment for each feature.}
 
 \item{cointegrated.data}{a logical that indicates if there is a belief that the data is cointegrated or not. The default value is \code{FALSE}.}
 
 \item{post.est}{a scalar specifying the number of post-treatment periods or a list specifying the periods
-for which treatment effects have to be estimated for each treated unit.}
+for which treatment effects have to be computed for each treated unit.}
 
-\item{units.est}{a list specifying the treated units for which treatment effects have to be estimated.}
+\item{units.est}{a list specifying the treated units for which treatment effects have to be computed.}
+
+\item{donors.est}{a list specifying the donors units to be used. If the list has length 1, then all treated units share the same
+potential donors. Otherwise, if the user requires different donor pools for different treated units, the list must be of the same
+length of the number of treated units and each element has to be named with one treated unit's name as specified in id.var.}
 
 \item{anticipation}{a scalar that indicates the number of periods of potential anticipation effects. Default is 0.}
 
-\item{effect}{a string indicating the type of treatment effect to be estimated. Options are: 'unit-time', which estimates treatment effects for each
+\item{effect}{a string indicating the type of treatment effect to be computed. Options are: 'unit-time', which estimates treatment effects for each
 treated unit- post treatment period combination; 'unit', which estimates the treatment effect for each unit by averaging post-treatment features over time;
 'time', which estimates the average treatment effect on the treated at various horizons.}
 
@@ -104,7 +108,7 @@ in the general case of multiple treated units and staggered adoption. It is a ge
 the data in the particular case of a single treated unit.
 
 The names of the output matrices follow the terminology proposed in
-\href{https://cattaneo.princeton.edu/papers/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, Feng, Palomba and Titiunik (2022)}  (UPDATE LINK).
+\href{https://mdcattaneo.github.io/papers/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, Feng, Palomba and Titiunik (2022)}  (UPDATE LINK).
 
 Companion \href{https://www.stata.com/}{Stata} and \href{https://www.python.org/}{Python} packages are
 described in \href{https://arxiv.org/abs/2202.05984}{Cattaneo, Feng, Palomba, and Titiunik (2022)}.
@@ -158,7 +162,7 @@ df.unit <- scdataMulti(datager, id.var = id.var, outcome.var = outcome.var,
 \itemize{
 \item{\href{https://www.aeaweb.org/articles?id=10.1257/jel.20191450}{Abadie, A. (2021)}. Using synthetic controls: Feasibility, data requirements, and methodological aspects.
 \emph{Journal of Economic Literature}, 59(2), 391-425.}
-\item{\href{https://cattaneo.princeton.edu/papers/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, M. D., Feng, Y., and Titiunik, R.
+\item{\href{https://mdcattaneo.github.io/papers/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, M. D., Feng, Y., and Titiunik, R.
 (2021)}. Prediction intervals for synthetic control methods. \emph{Journal of the American Statistical Association}, 116(536), 1865-1880.}
 \item{\href{https://arxiv.org/abs/2202.05984}{Cattaneo, M. D., Feng, Y., Palomba F., and Titiunik, R. (2022).}
 scpi: Uncertainty Quantification for Synthetic Control Methods, \emph{arXiv}:2202.05984.}
