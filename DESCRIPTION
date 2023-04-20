@@ -1,7 +1,7 @@
 Package: scpi
 Title: Prediction Intervals for Synthetic Control Methods with Multiple
         Treated Units and Staggered Adoption
-Version: 2.2.1
+Version: 2.2.2
 Authors@R: 
   c(person(given = "Matias",
            family = "Cattaneo",
@@ -33,11 +33,11 @@ RoxygenNote: 7.2.3
 Suggests: testthat (>= 3.0.0)
 Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2023-03-14 20:11:29 UTC; fpalomba
+Packaged: 2023-04-20 18:52:10 UTC; fpalomba
 Author: Matias Cattaneo [aut],
   Yingjie Feng [aut],
   Filippo Palomba [aut, cre],
   Rocio Titiunik [aut]
 Maintainer: Filippo Palomba <fpalomba@princeton.edu>
 Repository: CRAN
-Date/Publication: 2023-03-15 12:50:02 UTC
+Date/Publication: 2023-04-20 22:10:02 UTC
