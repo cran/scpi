@@ -1,4 +1,4 @@
-35dc008623afd8f471fbdecb1ab481b1 *DESCRIPTION
+0532ac38669e51dc89cf2329ed900564 *DESCRIPTION
 150396423fd27481b1baa2a07ddde276 *NAMESPACE
 c10208a6bff423960bc2f651d0a0e62a *R/data.R
 c4fb44c8ede7741c39bbf12caf01d7c9 *R/scdata.R
@@ -8,11 +8,11 @@ a010af3bc6f17bca3fd5fe9ea62cf853 *R/scdataMulti.R
 8a92610517c3e3a16929813b8566b465 *R/scest.R
 21d9982807e50395580339f88639c140 *R/scest_methods.R
 362fadaafb5ec75838e72589e0989e09 *R/scpi-package.R
-ab51b82121faeae688ba32a485887bd7 *R/scpi.R
+d42d9c199ce5932035d36ca92337bc2f *R/scpi.R
 2c4c8285be4e5df156d0f5c03eace366 *R/scpi_methods.R
 b52c00c245610d7446cf9a16f617e6cb *R/scplot.R
 ddd5190951f05915e6aa8adaa48d97ee *R/scplotMulti.R
-2e6772afb66510e3219a59df31a99b1e *R/supporting_functions.R
+57f397144c7f7dc97822ebde57b295cd *R/supporting_functions.R
 aa10fb4321cf467e7af812d7529b1e23 *data/scpi_germany.RData
 10fb070702777738b5e6604f9549cc17 *man/coef.scest.Rd
 da1f81d1ca2a0ecc2e39f06acd62d47d *man/coef.scpi.Rd
@@ -24,7 +24,7 @@ b9e9fc9501f12adc00aba6b0020991d6 *man/print.scdataMulti.Rd
 73554e73dd1bc772a466ce5c6a27f09c *man/scdataMulti.Rd
 e75baedee4c6d2e779078de8ee035853 *man/scest.Rd
 2cc889f24dc77be51b9a9aef15ce54c1 *man/scpi-package.Rd
-0482dbe8a385a5cd4c0b687e3a481085 *man/scpi.Rd
+a320a34b91268c95d2e051230c23acc9 *man/scpi.Rd
 5e70a70c7b7eef9a6cb30c1a532eb19a *man/scpi_germany.Rd
 161f4973aa92b1fccbea5454696b74e5 *man/scplot.Rd
 1700bfa31b339cdbe4d440f15e63d996 *man/scplotMulti.Rd
