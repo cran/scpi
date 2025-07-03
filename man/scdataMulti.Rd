@@ -111,21 +111,25 @@ and inference procedures for Synthetic Control (SC) methods
 in the general case of multiple treated units and staggered adoption. It is a generalization of \code{\link{scdata}}, since this latter prepares
 the data in the particular case of a single treated unit.
 
-The names of the output matrices follow the terminology proposed in
-\href{https://nppackages.github.io/references/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, Feng, Palomba and Titiunik (2022)}.
+The names of the output matrices follow the terminology proposed in \insertCite{cattaneo2021methodological-JASA;textual}{scpi} and
+\insertCite{cattaneo2025methodological-RESTAT;textual}{scpi}.
 
-Companion \href{https://www.stata.com/}{Stata} and \href{https://www.python.org/}{Python} packages are
-described in \href{https://arxiv.org/abs/2202.05984}{Cattaneo, Feng, Palomba, and Titiunik (2022)}.
+Companion \href{https://www.stata.com/}{Stata} and \href{https://www.python.org/}{Python} packages are described in
+\insertCite{cattaneo2025software-JSS;textual}{scpi}.
 
-Companion commands are: \link{scdata} for data preparation in the single treated unit case, \link{scest} for point estimation,
-\link{scpi} for inference procedures,
-\link{scplot} and \link{scplotMulti} for plots in the single and multiple treated unit(s) cases, respectively.
+Companion commands are: \link{scdataMulti} for data preparation in the multiple treated units case with staggered adoption,
+\link{scest} for point estimation, \link{scpi} for inference procedures, \link{scplot} and \link{scplotMulti} for plots in
+the single and multiple treated unit(s) cases, respectively.
 
 Related Stata, R, and Python packages useful for inference in SC designs are described in the following website:
 
-\href{ https://nppackages.github.io/scpi/}{ https://nppackages.github.io/scpi/}
+\href{https://nppackages.github.io/scpi/}{ https://nppackages.github.io/scpi/}
 
-For an introduction to synthetic control methods, see \href{https://www.aeaweb.org/articles?id=10.1257/jel.20191450}{Abadie (2021)} and references therein.
+For an introduction to synthetic control methods, see \insertCite{abadie2021UsingSyntheticControls;textual}{scpi} and references therein.
+
+\strong{Variable Naming Convention}: due to how \code{scpi} handles object internally, we kindly ask the users of the
+\code{R} version of the package to avoid including dots in the variable names. For example, "y.var" would generate
+issues with some parts of the code, whereas "yvar" or "y_var" would not.
 }
 \details{
 \itemize{
@@ -163,17 +167,7 @@ df.unit <- scdataMulti(datager, id.var = id.var, outcome.var = outcome.var,
 
 }
 \references{
-\itemize{
-\item{\href{https://www.aeaweb.org/articles?id=10.1257/jel.20191450}{Abadie, A. (2021)}.
-Using synthetic controls: Feasibility, data requirements, and methodological aspects.
-\emph{Journal of Economic Literature}, 59(2), 391-425.}
-\item{\href{https://nppackages.github.io/references/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, M. D., Feng, Y., and Titiunik, R.
-(2021)}. Prediction intervals for synthetic control methods. \emph{Journal of the American Statistical Association}, 116(536), 1865-1880.}
-\item{\href{https://arxiv.org/abs/2202.05984}{Cattaneo, M. D., Feng, Y., Palomba F., and Titiunik, R. (2022).}
-scpi: Uncertainty Quantification for Synthetic Control Methods, \emph{arXiv}:2202.05984.}
-\item{\href{https://arxiv.org/abs/2210.05026}{Cattaneo, M. D., Feng, Y., Palomba F., and Titiunik, R. (2022).}
-Uncertainty Quantification in Synthetic Controls with Staggered Treatment Adoption, \emph{arXiv}:2210.05026.}
-}
+\insertAllCited{}
 }
 \seealso{
 \code{\link{scdata}}, \code{\link{scest}}, \code{\link{scpi}}, \code{\link{scplot}}, \code{\link{scplotMulti}}

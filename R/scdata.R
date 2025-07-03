@@ -4,10 +4,11 @@
 #' inference procedures for Synthetic Control (SC) methods.
 #' It allows the user to specify the outcome variable, the features of the treated unit to be
 #' matched, and covariate-adjustment feature by feature. The names of the output matrices
-#' follow the terminology proposed in \href{https://nppackages.github.io/references/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, Feng, and Titiunik (2021)}.
+#' follow the terminology proposed in \insertCite{cattaneo2021methodological-JASA;textual}{scpi} and
+#' \insertCite{cattaneo2025methodological-RESTAT;textual}{scpi}.
 #'
 #' Companion \href{https://www.stata.com/}{Stata} and \href{https://www.python.org/}{Python} packages are described in
-#' \href{https://arxiv.org/abs/2202.05984}{Cattaneo, Feng, Palomba, and Titiunik (2022)}.
+#' \insertCite{cattaneo2025software-JSS;textual}{scpi}.
 #'
 #' Companion commands are: \link{scdataMulti} for data preparation in the multiple treated units case with staggered adoption,
 #' \link{scest} for point estimation, \link{scpi} for inference procedures, \link{scplot} and \link{scplotMulti} for plots in
@@ -17,7 +18,7 @@
 #'
 #' \href{https://nppackages.github.io/scpi/}{ https://nppackages.github.io/scpi/}
 #'
-#' For an introduction to synthetic control methods, see \href{https://www.aeaweb.org/articles?id=10.1257/jel.20191450}{Abadie (2021)} and references therein.
+#' For an introduction to synthetic control methods, see \insertCite{abadie2021UsingSyntheticControls;textual}{scpi} and references therein.
 #'
 #' @param df a dataframe object.
 #' @param id.var a character or numeric scalar with the name of the variable containing units' IDs. The ID variable can be numeric or character.
@@ -80,15 +81,15 @@
 #' \item{provide a list with as many elements as the number of features specified, then
 #' feature-specific covariate adjustment is implemented. For example,
 #' \code{cov.adj = list('f1' = c("constant","trend"), 'f2' = c("trend"))}. In this case the name of each element
-#' of the list should be one (and only one) of the features specified. Note that if two (or more) features are 
-#' specified and covariates adjustment has to be specified just for one of them, the user must still provide a list 
+#' of the list should be one (and only one) of the features specified. Note that if two (or more) features are
+#' specified and covariates adjustment has to be specified just for one of them, the user must still provide a list
 #' of the same length of the number of features, e.g., \code{cov.adj = list('f1' = c("constant","trend"), 'f2' = NULL}.}
 #' }
 #'
 #' This option allows the user to include feature-specific constant terms
 #' or time trends by simply including "constant" or "trend" in the corresponding
 #' element of the list.
-#'  
+#'
 #' When \code{outcome.var} is not included in \code{features}, we automatically set \eqn{\mathcal{R}=\emptyset}, that is
 #' we do not perform covariate adjustment. This is because, in this setting it is natural to create the out-of-sample
 #' prediction matrix \eqn{\mathbf{P}} using the post-treatment outcomes of the donor units only.
@@ -110,17 +111,7 @@
 #'
 #'
 #' @references
-#'\itemize{
-#' \item{\href{https://www.aeaweb.org/articles?id=10.1257/jel.20191450}{Abadie, A. (2021)}.
-#' Using synthetic controls: Feasibility, data requirements, and methodological aspects.
-#' \emph{Journal of Economic Literature}, 59(2), 391-425.}
-#' \item{\href{https://nppackages.github.io/references/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, M. D., Feng, Y., and Titiunik, R.
-#' (2021)}. Prediction intervals for synthetic control methods. \emph{Journal of the American Statistical Association}, 116(536), 1865-1880.}
-#' \item{\href{https://arxiv.org/abs/2202.05984}{Cattaneo, M. D., Feng, Y., Palomba F., and Titiunik, R. (2022).}
-#' scpi: Uncertainty Quantification for Synthetic Control Methods, \emph{arXiv}:2202.05984.}
-#' \item{\href{https://arxiv.org/abs/2210.05026}{Cattaneo, M. D., Feng, Y., Palomba F., and Titiunik, R. (2022).}
-#' Uncertainty Quantification in Synthetic Controls with Staggered Treatment Adoption, \emph{arXiv}:2210.05026.}
-#'}
+#'  \insertAllCited{}
 #'
 #' @seealso \code{\link{scdataMulti}}, \code{\link{scest}}, \code{\link{scpi}}, \code{\link{scplot}}, \code{\link{scplotMulti}}
 #'
@@ -336,9 +327,10 @@ scdata <- function(df,
   }
 
   if (anticipation > 0) {
-    t0 <- length(period.pre); d <- anticipation
-    period.post <- c(period.pre[(t0-d+1):t0], period.post)
-    period.pre  <- period.pre[1:(t0-d)]
+    t0 <- length(period.pre)
+    d <- anticipation
+    period.post <- c(period.pre[(t0 - d + 1):t0], period.post)
+    period.pre  <- period.pre[1:(t0 - d)]
   }
 
   # Order outcome variable as first feature and handle covariates for adjustment accordingly if needed

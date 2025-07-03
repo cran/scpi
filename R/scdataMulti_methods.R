@@ -26,8 +26,8 @@
 #'
 
 print.scdataMulti <- function(x, ...) {
-    trunits <- length(x$specs$treated.units)
-    cat(paste0("Prepared Data for ", trunits, " treated units.\n"))
+  trunits <- length(x$specs$treated.units)
+  cat(paste0("Prepared Data for ", trunits, " treated units.\n"))
 }
 
 ################################################################################
@@ -56,43 +56,43 @@ print.scdataMulti <- function(x, ...) {
 #' @export
 
 summary.scdataMulti <- function(object, ...) {
-    trunits <- object$specs$treated.units
+  trunits <- object$specs$treated.units
 
-    for (tr in trunits) {
-      J       <- object$specs$J[[tr]]
-      M       <- object$specs$M[[tr]]
-      K       <- object$specs$K[[tr]]
-      KM      <- object$specs$KM[[tr]]
-      T0      <- object$specs$T0.features[[tr]]
+  for (tr in trunits) {
+    J       <- object$specs$J[[tr]]
+    M       <- object$specs$M[[tr]]
+    K       <- object$specs$K[[tr]]
+    KM      <- object$specs$KM[[tr]]
+    T0      <- object$specs$T0.features[[tr]]
 
-      pt.in   <- object$specs$period.pre[[tr]][1]
-      pt.fi   <- object$specs$period.pre[[tr]][length(object$specs$period.pre[[tr]])]
+    pt.in   <- object$specs$period.pre[[tr]][1]
+    pt.fi   <- object$specs$period.pre[[tr]][length(object$specs$period.pre[[tr]])]
 
-      pot.in   <- object$specs$period.post[[tr]][1]
-      pot.fi   <- object$specs$period.post[[tr]][length(object$specs$period.post[[tr]])]
-      
-      cat("--------------------------------------------------------------------\n")
-      cat(paste0("Synthetic Control - Setup for ", tr, " \n"))
-      cat("\n")
+    pot.in   <- object$specs$period.post[[tr]][1]
+    pot.fi   <- object$specs$period.post[[tr]][length(object$specs$period.post[[tr]])]
 
-      cat(paste("Treated Unit:                              ", tr , "\n", sep = ""))
-      cat(paste("Size of the donor pool:                    ", J, "\n", sep = ""))
-      cat(paste("Features:                                  ", M, "\n", sep = ""))
-      cat(paste("Pre-treatment period:                      ", pt.in, " || ", pt.fi, "\n", sep = ""))
-      cat(paste("Post-treatment period:                     ", pot.in, " || ", pot.fi, "\n", sep = ""))
-      
-      if (M == 1) {
-        cat(paste("Pre-treatment periods used in estimation:  ", T0, "\n", sep = ""))
-        cat(paste("Covariates used for adjustment:            ", KM, "\n", sep = ""))
-
-      } else {
-        cat("Pre-treatment periods used in estimation per feature:\n")
-        print(T0)
-        cat("Covariates used for adjustment per feature:\n")
-        print(K)
-      }
-      cat("\n")
-    }
     cat("--------------------------------------------------------------------\n")
+    cat(paste0("Synthetic Control - Setup for ", tr, " \n"))
+    cat("\n")
+
+    cat(paste("Treated Unit:                              ", tr, "\n", sep = ""))
+    cat(paste("Size of the donor pool:                    ", J, "\n", sep = ""))
+    cat(paste("Features:                                  ", M, "\n", sep = ""))
+    cat(paste("Pre-treatment period:                      ", pt.in, " || ", pt.fi, "\n", sep = ""))
+    cat(paste("Post-treatment period:                     ", pot.in, " || ", pot.fi, "\n", sep = ""))
+
+    if (M == 1) {
+      cat(paste("Pre-treatment periods used in estimation:  ", T0, "\n", sep = ""))
+      cat(paste("Covariates used for adjustment:            ", KM, "\n", sep = ""))
+
+    } else {
+      cat("Pre-treatment periods used in estimation per feature:\n")
+      print(T0)
+      cat("Covariates used for adjustment per feature:\n")
+      print(K)
+    }
+    cat("\n")
+  }
+  cat("--------------------------------------------------------------------\n")
 
 }

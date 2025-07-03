@@ -88,10 +88,11 @@ The command prepares the data to be used by \code{\link{scest}} or \code{\link{s
 inference procedures for Synthetic Control (SC) methods.
 It allows the user to specify the outcome variable, the features of the treated unit to be
 matched, and covariate-adjustment feature by feature. The names of the output matrices
-follow the terminology proposed in \href{https://nppackages.github.io/references/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, Feng, and Titiunik (2021)}.
+follow the terminology proposed in \insertCite{cattaneo2021methodological-JASA;textual}{scpi} and
+\insertCite{cattaneo2025methodological-RESTAT;textual}{scpi}.
 
 Companion \href{https://www.stata.com/}{Stata} and \href{https://www.python.org/}{Python} packages are described in
-\href{https://arxiv.org/abs/2202.05984}{Cattaneo, Feng, Palomba, and Titiunik (2022)}.
+\insertCite{cattaneo2025software-JSS;textual}{scpi}.
 
 Companion commands are: \link{scdataMulti} for data preparation in the multiple treated units case with staggered adoption,
 \link{scest} for point estimation, \link{scpi} for inference procedures, \link{scplot} and \link{scplotMulti} for plots in
@@ -101,7 +102,7 @@ Related Stata, R, and Python packages useful for inference in SC designs are des
 
 \href{https://nppackages.github.io/scpi/}{ https://nppackages.github.io/scpi/}
 
-For an introduction to synthetic control methods, see \href{https://www.aeaweb.org/articles?id=10.1257/jel.20191450}{Abadie (2021)} and references therein.
+For an introduction to synthetic control methods, see \insertCite{abadie2021UsingSyntheticControls;textual}{scpi} and references therein.
 }
 \details{
 \itemize{
@@ -146,17 +147,7 @@ df <- scdata(df = data, id.var = "country", time.var = "year",
 
 }
 \references{
-\itemize{
-\item{\href{https://www.aeaweb.org/articles?id=10.1257/jel.20191450}{Abadie, A. (2021)}.
-Using synthetic controls: Feasibility, data requirements, and methodological aspects.
-\emph{Journal of Economic Literature}, 59(2), 391-425.}
-\item{\href{https://nppackages.github.io/references/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, M. D., Feng, Y., and Titiunik, R.
-(2021)}. Prediction intervals for synthetic control methods. \emph{Journal of the American Statistical Association}, 116(536), 1865-1880.}
-\item{\href{https://arxiv.org/abs/2202.05984}{Cattaneo, M. D., Feng, Y., Palomba F., and Titiunik, R. (2022).}
-scpi: Uncertainty Quantification for Synthetic Control Methods, \emph{arXiv}:2202.05984.}
-\item{\href{https://arxiv.org/abs/2210.05026}{Cattaneo, M. D., Feng, Y., Palomba F., and Titiunik, R. (2022).}
-Uncertainty Quantification in Synthetic Controls with Staggered Treatment Adoption, \emph{arXiv}:2210.05026.}
-}
+\insertAllCited{}
 }
 \seealso{
 \code{\link{scdataMulti}}, \code{\link{scest}}, \code{\link{scpi}}, \code{\link{scplot}}, \code{\link{scplotMulti}}

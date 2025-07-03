@@ -1,11 +1,14 @@
 #' @title Plot Synthetic Control Point Estimates and Prediction Interval With Multiple Treated units and Staggered Adoption
 #'
-#' @description The command produces a wide range of plots of Synthetic Control estimates and corresponding prediction intervals. The command allows form multiple treated units and staggered adoption.
+#' @description The command produces a wide range of plots of Synthetic Control estimates and corresponding prediction intervals.
+#' The command allows form multiple treated units and staggered adoption.
 #' Prediction intervals can take into account either in-sample uncertainty only or in-sample and
-#' out-of-sample uncertainty using the techniques developed in \href{https://nppackages.github.io/references/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, Feng, and Titiunik (2021)}. \code{\link{scpi}}.
+#' out-of-sample uncertainty using the techniques developed in to \insertCite{cattaneo2021methodological-JASA;textual}{scpi} and
+#' \insertCite{cattaneo2025methodological-RESTAT;textual}{scpi}.
 #' The input object should come from the command \code{\link{scest}} or from the command \code{\link{scpi}}.
 #'
-#' Companion \href{https://www.stata.com/}{Stata} and \href{https://www.python.org/}{Python} packages are described in \href{https://arxiv.org/abs/2202.05984}{Cattaneo, Feng, Palomba, and Titiunik (2022)}.
+#' Companion \href{https://www.stata.com/}{Stata} and \href{https://www.python.org/}{Python} packages are described in
+#' \insertCite{cattaneo2025software-JSS;textual}{scpi}.
 #'
 #' Companion commands are:  \link{scdata} and \link{scdataMulti} for data preparation in the single and multiple treated unit(s) cases, respectively,
 #' \link{scest} for point estimation, \link{scpi} for inference procedures, and \link{scplotMulti} for plots with multiple treated units.
@@ -14,7 +17,7 @@
 #'
 #' \href{ https://nppackages.github.io/scpi/}{ https://nppackages.github.io/scpi/}
 #'
-#' For an introduction to synthetic control methods, see \href{https://www.aeaweb.org/articles?id=10.1257/jel.20191450}{Abadie (2021)} and references therein.
+#' For an introduction to synthetic control methods, see \insertCite{abadie2021UsingSyntheticControls;textual}{scpi} and references therein.
 #'
 #' @param result a class 'scest' object, obtained by calling \code{\link{scest}}, or a class
 #' 'scpi' object, obtained by calling \code{\link{scpi}}. The data object given as input to this command has to be
@@ -44,16 +47,7 @@
 #' Rocio Titiunik, Princeton University. \email{titiunik@princeton.edu}.
 #'
 #' @references
-#' \itemize{
-#' \item{\href{https://www.aeaweb.org/articles?id=10.1257/jel.20191450}{Abadie, A. (2021)}. Using synthetic controls: Feasibility, data requirements, and methodological aspects.
-#' \emph{Journal of Economic Literature}, 59(2), 391-425.}
-#' \item{\href{https://nppackages.github.io/references/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, M. D., Feng, Y., and Titiunik, R. 
-#' (2021)}. Prediction intervals for synthetic control methods. \emph{Journal of the American Statistical Association}, 116(536), 1865-1880.} 
-#' \item{\href{https://arxiv.org/abs/2202.05984}{Cattaneo, M. D., Feng, Y., Palomba F., and Titiunik, R. (2022)},
-#' scpi: Uncertainty Quantification for Synthetic Control Methods, \emph{arXiv}:2202.05984.}
-#' \item{\href{https://arxiv.org/abs/2210.05026}{Cattaneo, M. D., Feng, Y., Palomba F., and Titiunik, R. (2022).}
-#' Uncertainty Quantification in Synthetic Controls with Staggered Treatment Adoption, \emph{arXiv}:2210.05026.}
-#' }
+#'  \insertAllCited{}
 #'
 #' @seealso \code{\link{scdata}}, \code{\link{scdataMulti}}, \code{\link{scest}}, \code{\link{scpi}}, \code{\link{scplotMulti}}
 #'
@@ -177,8 +171,8 @@ scplotMulti <- function(result, type = "series", e.out = TRUE, joint = FALSE,
     auxdf <- data.frame(ID = names(T1.outcome), Periods = unlist(T1.outcome))
     toplot <- merge(toplot, auxdf, by = "ID")
     plot <- ggplot(subset(toplot, Treatment == 1)) + xlab("Unit") + ylab("Effect") +
-            geom_point(aes(x=.data$ID, y=.data$Effect, size=.data$Periods), colour = col.synth, shape = 19) +
-            geom_hline(aes(yintercept= 0), linetype = "dashed") + coord_flip()
+            geom_point(aes(x = .data$ID, y = .data$Effect, size=.data$Periods), colour = col.synth, shape = 19) +
+            geom_hline(aes(yintercept = 0), linetype = "dashed") + coord_flip()
 
   }
 

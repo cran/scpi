@@ -2,12 +2,16 @@
 
 #' @title Prediction Intervals for Synthetic Control Methods
 #'
-#' @description The command implements estimation and inference procedures for Synthetic Control (SC) methods using least squares, lasso, ridge, or simplex-type constraints. Uncertainty is quantified using prediction
-#' intervals according to \href{https://nppackages.github.io/references/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, Feng, and Titiunik (2021)}. \code{\link{scpi}} returns the estimated 
-#' post-treatment series for the synthetic unit through the command \code{\link{scest}} and quantifies in-sample and out-of-sample uncertainty to provide confidence intervals
+#' @description The command implements estimation and inference procedures for Synthetic Control (SC) methods using least squares,
+#' lasso, ridge, or simplex-type constraints. Uncertainty is quantified using prediction
+#' intervals according to \insertCite{cattaneo2021methodological-JASA;textual}{scpi} and
+#' \insertCite{cattaneo2025methodological-RESTAT;textual}{scpi}. \code{\link{scpi}} returns the estimated
+#' post-treatment series for the synthetic unit through the command \code{\link{scest}} and quantifies in-sample and
+#' out-of-sample uncertainty to provide confidence intervals
 #' for each point estimate.
 #'
-#' Companion \href{https://www.stata.com/}{Stata} and \href{https://www.python.org/}{Python} packages are described in \href{https://arxiv.org/abs/2202.05984}{Cattaneo, Feng, Palomba, and Titiunik (2022)}.
+#' Companion \href{https://www.stata.com/}{Stata} and \href{https://www.python.org/}{Python} packages are described in
+#' \insertCite{cattaneo2025software-JSS;textual}{scpi}.
 #'
 #' Companion commands are:  \link{scdata} and \link{scdataMulti} for data preparation in the single and multiple treated unit(s) cases, respectively,
 #' \link{scest} for point estimation, \link{scplot} and \link{scplotMulti} for plots in the single and multiple treated unit(s) cases, respectively.
@@ -16,7 +20,7 @@
 #'
 #' \href{ https://nppackages.github.io/scpi/}{ https://nppackages.github.io/scpi/}
 #'
-#' For an introduction to synthetic control methods, see \href{https://www.aeaweb.org/articles?id=10.1257/jel.20191450}{Abadie (2021)} and references therein.
+#' For an introduction to synthetic control methods, see \insertCite{abadie2021UsingSyntheticControls;textual}{scpi} and references therein.
 #'
 #' @param data a class 'scdata' object, obtained by calling \code{\link{scdata}}, or class 'scdataMulti' obtained via \code{\link{scdataMulti}}.
 #' @param w.constr a list specifying the constraint set the estimated weights of the donors must belong to.
@@ -275,16 +279,7 @@
 #' Rocio Titiunik, Princeton University. \email{titiunik@princeton.edu}.
 #'
 #' @references
-#' \itemize{
-#' \item{\href{https://www.aeaweb.org/articles?id=10.1257/jel.20191450}{Abadie, A. (2021)}. Using synthetic controls: Feasibility, data requirements, and methodological aspects.
-#' \emph{Journal of Economic Literature}, 59(2), 391-425.}
-#' \item{\href{https://nppackages.github.io/references/Cattaneo-Feng-Titiunik_2021_JASA.pdf}{Cattaneo, M. D., Feng, Y., and Titiunik, R. 
-#' (2021)}. Prediction intervals for synthetic control methods. \emph{Journal of the American Statistical Association}, 116(536), 1865-1880.}
-#' \item{\href{https://arxiv.org/abs/2202.05984}{Cattaneo, M. D., Feng, Y., Palomba F., and Titiunik, R. (2022).}
-#' scpi: Uncertainty Quantification for Synthetic Control Methods, \emph{arXiv}:2202.05984.}
-#' \item{\href{https://arxiv.org/abs/2210.05026}{Cattaneo, M. D., Feng, Y., Palomba F., and Titiunik, R. (2022).}
-#' Uncertainty Quantification in Synthetic Controls with Staggered Treatment Adoption, \emph{arXiv}:2210.05026.}
-#' }
+#'  \insertAllCited{}
 #'
 #' @seealso \code{\link{scdata}}, \code{\link{scdataMulti}}, \code{\link{scest}}, \code{\link{scplot}}, \code{\link{scplotMulti}}
 #'
@@ -816,7 +811,7 @@ scpi  <- function(data,
     # each treated unit, otherwise we solve it jointly
 
     if (isTRUE(V.diag) && (isFALSE(force.joint.PI.optim))) {
-      #browser()
+
       vsigg <- insampleUncertaintyGetDiag(Z.na, V.na, P.na, beta, Sigma.root, J, KM, I,
                                           w.constr.inf[[1]], Q.star, Q2.star, lb, TT, sims, cores, verbose,
                                           w.lb.est, w.ub.est, sc.effect)
@@ -852,14 +847,16 @@ scpi  <- function(data,
   if (w.lb.est == FALSE && w.ub.est == FALSE) {
     vsig <- matrix(0, nrow = sims, ncol = 2 * T1.tot)
   }
+
   failed.sims <- rbind(fail.lb, fail.ub)
   rownames(failed.sims) <- c("lb", "ub")
   cat("\n")
 
-  if ((sum(failed.sims) > 0.1 * sims * ncol(vsig)) && verbose) {
+  if (any(failed.sims > 20) && verbose) {
     warning("For some of the simulations used to quantify in-sample uncertainty the solution of the optimization problem 
-          was not found! We suggest inspecting the magnitude of this issue by consulting the percentage of simulations
-          that failed contained in YOUR_SCPI_OBJECT_NAME$inference.results$failed.sims.",
+            was not found! We suggest inspecting the magnitude of this issue by consulting the percentage of simulations
+            that failed contained in YOUR_SCPI_OBJECT_NAME$inference.results$failed.sims. It is often the case that one
+            of the features takes large values. Please consider re-scaling it appropriately.",
             immediate. = TRUE, call. = FALSE)
   }
 

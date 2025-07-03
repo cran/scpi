@@ -1152,6 +1152,7 @@ insampleUncertaintyGetDiag <- function(Z.na, V.na, P.na, beta, Sigma.root, J, KM
         # minimization
         if (w.lb.est == TRUE) {
           data[["c"]] <- ECOS_get_c(-xt, ns)
+          
           solver_output <- ECOSolveR::ECOS_csolve(c = data[["c"]],
                                                   G = data[["G"]],
                                                   h = data[["h"]],
