@@ -316,7 +316,7 @@ w.constr.OBJ <- function(w.constr, A, Z, V, J, KM, M) {
             aux <- shrinkage.EST("ridge", Af, as.matrix(Zf), Vf, J, KM)
             Q2 <- aux$Q
           }, warning=function(warn) {},
-          error=function(err) {}, finally={})
+          error=function(err) {}, finally = {})
           Qfeat <- c(Qfeat, QQ)
         } else {
           aux <- list("lambda" = 0) # create list to avoid code crashing later on
@@ -340,7 +340,7 @@ w.constr.OBJ <- function(w.constr, A, Z, V, J, KM, M) {
   } else {
 
     # if constraint is entirely user specified just check everything is fine
-    if (!(all(c('p', 'dir', 'Q', 'lb') %in% names(w.constr)))) {
+    if (!(all(c("p", "dir", "Q", "lb") %in% names(w.constr)))) {
       stop("If 'name' is not specified, w.constr should be a list whose elements 
             must be named 'p','dir','Q','lb'.")
     }
@@ -381,7 +381,7 @@ shrinkage.EST <- function(method, A, Z, V, J, KM) {
 
     # reduce dimensionality of the problem if more params than obs
     if (is.nan(Q) || (nrow(Z) <= ncol(Z) + 10)) {
-      lasso.cols <- b.est(A = A, Z = Z, J = J, KM = KM, V = V, CVXR.solver = "OSQP",
+      lasso.cols <- b.est(A = A, Z = Z, J = J, KM = KM, V = V, CVXR.solver = "CLARABEL",
                           w.constr = list(name = "lasso", dir = "<=", lb = 0, p = "L1", Q = 1))
       active.cols <- abs(lasso.cols) > 1e-8
       if (sum(active.cols) >= (max(nrow(A) - 10, 2)) ) {
@@ -400,7 +400,7 @@ shrinkage.EST <- function(method, A, Z, V, J, KM) {
 
 # Auxiliary function that solves the (un)constrained problem to estimate b
 # depending on the desired method
-b.est <- function(A, Z, J, KM, w.constr, V, CVXR.solver = "ECOS") {
+b.est <- function(A, Z, J, KM, w.constr, V, CVXR.solver = "CLARABEL") {
 
   dire <- w.constr[["dir"]]
   lb   <- w.constr[["lb"]]
@@ -423,7 +423,6 @@ b.est <- function(A, Z, J, KM, w.constr, V, CVXR.solver = "ECOS") {
     if (dire == "==") { # simplex
       constraints <- list(CVXR::sum_entries(x[1:J]) == QQ, x[1:J] >= lb)
     } else if (dire == "<=") { # lasso
-      #constraints <- list(CVXR::norm1(x[1:J]) <= QQ, x[1:J] >= lb)
       constraints <- list(CVXR::norm1(x[1:J]) <= QQ)
     }
 
@@ -442,14 +441,14 @@ b.est <- function(A, Z, J, KM, w.constr, V, CVXR.solver = "ECOS") {
 
   # num_iter required in large lasso/L1-L2/ridge problems is often >10k, which is the default in OSQP/ECOS
   prob  <- CVXR::Problem(objective, constraints)
-  sol   <- CVXR::solve(prob, solver = CVXR.solver, num_iter = 100000L, verbose = FALSE)
+  sol   <- CVXR::psolve(prob, solver = CVXR.solver, num_iter = 100000L, verbose = FALSE)
 
-  b <- sol$getValue(x)
-  alert <- !(sol$status %in% c("optimal", "optimal_inaccurate"))
+  b <- CVXR::value(x)
+  alert <- !(CVXR::status(prob) %in% c("optimal", "optimal_inaccurate"))
 
   if (alert == TRUE) {
     stop(paste0("Estimation algorithm not converged! The algorithm returned the value:",
-                sol$status, ". To check to what errors it corresponds go to 
+                CVXR::status(prob), ". To check to what errors it corresponds go to 
                'https://cvxr.rbind.io/cvxr_examples/cvxr_gentle-intro/'. Typically, this occurs
                 because the problem is badly-scaled. If so, scaling the data fixes the issue. Another
                 fix could be changing the algorithm via the option 'solver'. Check your available options
@@ -466,7 +465,7 @@ b.est <- function(A, Z, J, KM, w.constr, V, CVXR.solver = "ECOS") {
 
 # Auxiliary function that solves the (un)constrained problem to estimate b
 # depending on the desired method - Multiple treated units case
-b.est.multi <- function(A, Z, J, KMI, I, w.constr, V, CVXR.solver="ECOS") {
+b.est.multi <- function(A, Z, J, KMI, I, w.constr, V, CVXR.solver = "CLARABEL") {
 
   # The constraint is symmetric in the shape across treated units (J, KM, Q might change)
   dire  <- w.constr[[1]]$dir
@@ -502,25 +501,25 @@ b.est.multi <- function(A, Z, J, KMI, I, w.constr, V, CVXR.solver="ECOS") {
       }
 
     } else if (p == "L2") { # ridge
-        constraints <- append(constraints, list(CVXR::sum_squares(x[j.lb:j.ub]) <= QQ[i]^2))
+      constraints <- append(constraints, list(CVXR::sum_squares(x[j.lb:j.ub]) <= QQ[i]^2))
 
     } else if (p == "L1-L2") {
       constraints <- append(constraints, list(CVXR::sum_entries(x[j.lb:j.ub]) == QQ[i],
-                          CVXR::power(CVXR::cvxr_norm(x[j.lb:j.ub], 2), 2) <= CVXR::power(Q2[i], 2)))
+                                              CVXR::power(CVXR::cvxr_norm(x[j.lb:j.ub], 2), 2) <= CVXR::power(Q2[i], 2)))
     }
 
     j.lb <- j.ub + 1
   }
 
-  prob        <- CVXR::Problem(objective, constraints)
-  sol         <- CVXR::solve(prob, solver=CVXR.solver, num_iter=100000L, verbose=FALSE)
+  prob  <- CVXR::Problem(objective, constraints)
+  sol   <- CVXR::psolve(prob, solver = CVXR.solver, num_iter = 100000L, verbose = FALSE)
 
-  b <- sol$getValue(x)
-  alert <- !(sol$status %in% c("optimal", "optimal_inaccurate"))
-  
+  b <- CVXR::value(x)
+  alert <- !(CVXR::status(prob) %in% c("optimal", "optimal_inaccurate"))
+
   if (alert == TRUE) {
     stop(paste0("Estimation algorithm not converged! The algorithm returned the value:",
-                sol$status, ". To check to what errors it corresponds go to 
+                CVXR::status(prob), ". To check to what errors it corresponds go to 
                'https://cvxr.rbind.io/cvxr_examples/cvxr_gentle-intro/'. Typically, this occurs
                 because the problem is badly-scaled. If so, scaling the data fixes the issue. Another
                 fix could be changing the algorithm via the option 'solver'. Check your available options
@@ -1542,7 +1541,7 @@ regularize.w <- function(rho, rho.max, res, B, T0.tot, J, KM, d0) {
 
   if (rho == "type-1") {
     sigma.u  <- sqrt(mean((res - mean(res))^2))
-    sigma.bj <- min(apply(B, 2, sd))
+    sigma.bj <- min(apply(B, 2, stats::sd))
     denomCheck(sigma.bj)
     CC       <- sigma.u / sigma.bj
 
@@ -1550,7 +1549,7 @@ regularize.w <- function(rho, rho.max, res, B, T0.tot, J, KM, d0) {
     sigma.u   <- sqrt(mean((res - mean(res))^2))
     sigma.bj2 <- min(apply(B, 2, var))
     denomCheck(sigma.bj2)
-    sigma.bj  <- max(apply(B, 2, sd))
+    sigma.bj  <- max(apply(B, 2, stats::sd))
     CC        <- sigma.bj * sigma.u / sigma.bj2
 
   }
