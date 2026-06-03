@@ -5,7 +5,7 @@
 #' @description The command implements estimation and inference procedures for Synthetic Control (SC) methods using least squares,
 #' lasso, ridge, or simplex-type constraints. Uncertainty is quantified using prediction
 #' intervals according to \insertCite{cattaneo2021methodological-JASA;textual}{scpi} and
-#' \insertCite{cattaneo2025methodological-RESTAT;textual}{scpi}. \code{\link{scpi}} returns the estimated
+#' \insertCite{cattaneo2027methodological-RESTAT;textual}{scpi}. \code{\link{scpi}} returns the estimated
 #' post-treatment series for the synthetic unit through the command \code{\link{scest}} and quantifies in-sample and
 #' out-of-sample uncertainty to provide confidence intervals
 #' for each point estimate.
@@ -22,7 +22,9 @@
 #'
 #' For an introduction to synthetic control methods, see \insertCite{abadie2021UsingSyntheticControls;textual}{scpi} and references therein.
 #'
-#' @param data a class 'scdata' object, obtained by calling \code{\link{scdata}}, or class 'scdataMulti' obtained via \code{\link{scdataMulti}}.
+#' @param data a class 'scdata' object, obtained by calling \code{\link{scdata}}, a class 'scdataMulti' obtained via
+#' \code{\link{scdataMulti}}, or a class 'scest' object obtained by calling \code{\link{scest}}. When a class 'scest'
+#' object is provided, \code{\link{scpi}} reuses its point estimates and skips the internal \code{\link{scest}} call.
 #' @param w.constr a list specifying the constraint set the estimated weights of the donors must belong to.
 #' \code{w.constr} can contain up to five elements:
 #' - `\code{p}', a scalar indicating the norm to be used (\code{p} should be one of "no norm", "L1", and "L2")
@@ -89,7 +91,7 @@
 #' @param force.joint.PI.optim this option is here mostly for backward-compatibility. If FALSE (the default) it solves a separate optimization problem for each
 #' treated unit when it comes to quantify in-sample uncertainty as long as the weighting matrix \eqn{\mathbf{V}} is diagonal.
 #' If TRUE it solves a joint optimization problem for all treated units to quantify in-sample uncertainty. Both are valid approaches as
-#' we detail in the main paper (Cattaneo, Feng, Palomba, and Titiunik (2024)). The former is faster and less conservative.
+#' we detail in the main paper (Cattaneo, Feng, Palomba, and Titiunik (2027)). The former is faster and less conservative.
 #' @param save.data a character specifying the name and the path of the saved dataframe containing the processed data used to produce the plot. 
 #' @param verbose if \code{TRUE} prints additional information in the console.
 #'
@@ -269,13 +271,13 @@
 #' }
 #'
 #' @author
-#' Matias Cattaneo, Princeton University. \email{cattaneo@princeton.edu}.
+#' Matias D. Cattaneo, Princeton University. \email{matias.d.cattaneo@gmail.com}.
 #'
-#' Yingjie Feng, Tsinghua University. \email{fengyj@sem.tsinghua.edu.cn}.
+#' Yingjie Feng, Tsinghua University. \email{fengyingjiepku@gmail.com}.
 #'
-#' Filippo Palomba, Princeton University (maintainer). \email{fpalomba@princeton.edu}.
+#' Filippo Palomba, Princeton University. \email{filippo.palomba19@gmail.com}.
 #'
-#' Rocio Titiunik, Princeton University. \email{titiunik@princeton.edu}.
+#' Rocio Titiunik, Princeton University. \email{rocio.titiunik@gmail.com}.
 #'
 #' @references
 #'  \insertAllCited{}
@@ -328,11 +330,21 @@ scpi  <- function(data,
                   verbose      = TRUE) {
 
 
-  if ((methods::is(data, "scdata") || methods::is(data, "scdataMulti")) == FALSE) {
-    stop("data should be the object returned by running scdata or scdata_multi!")
+  data.is.scest <- inherits(data, "scest")
+  if ((methods::is(data, "scdata") || methods::is(data, "scdataMulti") || data.is.scest) == FALSE) {
+    stop("data should be the object returned by running scdata, scdata_multi, or scest!")
   }
 
-  if (methods::is(data, "scdata") == TRUE) {
+  if (data.is.scest) {
+    class.type <- data$data$specs$class.type
+    if (class.type == "scpi_scest") {
+      class.type <- "scpi_data"
+    } else if (class.type == "scpi_scest_multi") {
+      class.type <- "scpi_data_multi"
+    } else {
+      stop("The class 'scest' object provided to data is not recognized.")
+    }
+  } else if (methods::is(data, "scdata") == TRUE) {
     class.type <- "scpi_data"
   } else if (methods::is(data, "scdataMulti") == TRUE) {
     class.type <- "scpi_data_multi"
@@ -343,9 +355,22 @@ scpi  <- function(data,
   ## Estimation of synthetic weights
   if (verbose) {
     cat("---------------------------------------------------------------\n")
-    cat("Estimating Weights...\n")
+    if (data.is.scest) {
+      cat("Reusing Estimated Weights...\n")
+    } else {
+      cat("Estimating Weights...\n")
+    }
   }
-  sc.pred <- scest(data = data, w.constr = w.constr, V = V, V.mat = V.mat, solver = solver)
+  if (data.is.scest) {
+    if (!is.null(w.constr) || !identical(V, "separate") || !is.null(V.mat) || !identical(solver, "CLARABEL")) {
+      warning("When data is a class 'scest' object, w.constr, V, V.mat, and solver are ignored because point estimates are reused.",
+              immediate. = TRUE, call. = FALSE)
+    }
+    sc.pred <- data
+    data <- sc.pred$data
+  } else {
+    sc.pred <- scest(data = data, w.constr = w.constr, V = V, V.mat = V.mat, solver = solver)
+  }
 
 
   #############################################################################
@@ -356,7 +381,7 @@ scpi  <- function(data,
   B           <- sc.pred$data$B                           # Features of control units
   C           <- sc.pred$data$C                           # Covariates for adjustment
   Z           <- sc.pred$data$Z                           # B and C column-bind
-  Y.donors    <- data$Y.donors                            # Outcome variable of control units
+  Y.donors    <- sc.pred$data$Y.donors                    # Outcome variable of control units
   K           <- sc.pred$data$specs$K                     # Number of covs for adjustment per feature
   KM          <- sc.pred$data$specs$KM                    # Dimension of r (total number of covs for adj)
   J           <- sc.pred$data$specs$J                     # Number of donors
@@ -394,9 +419,9 @@ scpi  <- function(data,
   } else if (class.type == "scpi_data_multi") {
     J               <- unlist(J)
     Jtot            <- sum(J)
-    KMI             <- data$specs$KMI                              # total number of covariates used for adjustment
-    I               <- data$specs$I                                # number of treated units
-    T0.M            <- unlist(lapply(data$specs$T0.features, sum)) # observations per treated unit
+    KMI             <- sc.pred$data$specs$KMI                              # total number of covariates used for adjustment
+    I               <- sc.pred$data$specs$I                                # number of treated units
+    T0.M            <- unlist(lapply(sc.pred$data$specs$T0.features, sum)) # observations per treated unit
     T0.tot          <- sum(T0.M)                                   # Total number of observations used in estimation
     T1.tot          <- sum(unlist(T1))                             # Total number of observations post-treatment
   }
@@ -430,6 +455,17 @@ scpi  <- function(data,
       stop(paste("The matrix P currently has", ncol(P), "columns when instead", Pcols, "were expected
                  (i.e. the size of the donor pool plus the number of covariates used in adjustment in the outcome equation)!"))
     }
+  }
+
+  if (sc.effect == "time") {
+    P.names <- rownames(P)
+    if (is.null(P.names) || length(P.names) != nrow(P)) {
+      P.names <- rownames(sc.pred$data$Y.post.agg)
+    }
+    if (is.null(P.names) || length(P.names) != nrow(P)) {
+      P.names <- seq_len(nrow(P))
+    }
+    rownames(P) <- sub("^aggregate\\.", "", as.character(P.names))
   }
 
   if (!(e.method %in% c("gaussian", "ls", "qreg", "all"))) {
@@ -546,8 +582,15 @@ scpi  <- function(data,
 
   if (!is.null(sc.pred$data$P.diff)) {
     Pd.list <- mat2list(sc.pred$data$P.diff)
+    Pd.list.full <- rep(list(NULL), I)
+    names(Pd.list.full) <- sc.pred$data$specs$treated.units
+    for (tr in names(Pd.list)) {
+      Pd.list.full[[tr]] <- Pd.list[[tr]]
+    }
+    Pd.list <- Pd.list.full
   } else {
     Pd.list <- rep(list(NULL), I)
+    names(Pd.list) <- sc.pred$data$specs$treated.units
   }
 
   V.list   <- mat2list(V)
@@ -575,21 +618,22 @@ scpi  <- function(data,
     w.constr.list <- w.constr
   }
 
-  w.star <- index.w <- rho.vec <- Q.star <- Q2.star <- f.id <- e.res <- u.names <- e.rownames <- e.colnames <- e1.rownames <- c()
-  u.des.0 <- e.des.0 <- e.des.1 <- matrix(NA, 0, 0)
-  w.constr.inf <- list()
+  w.star.blocks <- index.w.blocks <- rho.vec.blocks <- Q.star.blocks <- Q2.star.blocks <- vector("list", I)
+  f.id.blocks <- e.res.blocks <- u.names.blocks <- e.rownames.blocks <- e.colnames.blocks <- e1.rownames.blocks <- vector("list", I)
+  u.des.0.blocks <- e.des.0.blocks <- e.des.1.blocks <- vector("list", I)
+  w.constr.inf <- vector("list", I)
 
   for (i in seq_len(I)) {
     ## Regularize W and local geometry (treated unit by treated unit)
     loc.geom <- local.geom(w.constr.list[[i]], rho, rho.max, res.list[[i]], B.list[[i]],
                            T0.M[[i]], J[[i]], KM[[i]], w.list[[i]], verbose)
 
-    w.star       <- c(w.star, loc.geom$w.star)
-    index.w      <- c(index.w, loc.geom$index.w)
-    w.constr.inf <- append(w.constr.inf, list(loc.geom$w.constr))
-    rho.vec      <- c(rho.vec, loc.geom$rho)
-    Q.star       <- c(Q.star, loc.geom$Q.star)
-    Q2.star      <- c(Q2.star, loc.geom$Q2.star)
+    w.star.blocks[[i]] <- loc.geom$w.star
+    index.w.blocks[[i]] <- loc.geom$index.w
+    w.constr.inf[[i]] <- loc.geom$w.constr
+    rho.vec.blocks[[i]] <- loc.geom$rho
+    Q.star.blocks[[i]] <- loc.geom$Q.star
+    Q2.star.blocks[[i]] <- loc.geom$Q2.star
     index.i      <- c(loc.geom$index.w, rep(TRUE, KM[[i]]))
 
     # Extract feature id from rownames of B
@@ -610,10 +654,9 @@ scpi  <- function(data,
                       T0.M[i], constant[[i]], index.i, loc.geom$index.w,
                       features[[i]], feature.id, u.design, res.list[[i]])
 
-    u.names <- c(u.names, colnames(obj$u.des.0))
-
-    u.des.0 <- Matrix::bdiag(u.des.0, obj$u.des.0)
-    f.id <- c(f.id, as.factor(feature.id))
+    u.names.blocks[[i]] <- colnames(obj$u.des.0)
+    u.des.0.blocks[[i]] <- obj$u.des.0
+    f.id.blocks[[i]] <- as.factor(feature.id)
 
     ## Prepare design matrices for out-of-sample uncertainty
     e.des <- e.des.prep(B.list[[i]], C.list[[i]], P.list[[i]], e.order, e.lags,
@@ -622,20 +665,35 @@ scpi  <- function(data,
                         coig.data[[i]], T0[[i]][outcome.var], T1[[i]], constant[[i]], 
                         e.design, Pd.list[[i]], sc.pred$data$specs$effect, I, class.type)
 
-    e.res   <- c(e.res, e.des$e.res)
-    e.rownames <- c(e.rownames, rownames(e.des$e.res))
+    e.res.blocks[[i]] <- e.des$e.res
+    e.rownames.blocks[[i]] <- rownames(e.des$e.res)
     cnames <- rep(paste0(names(w.constr.list)[[i]], "."), ncol(e.des$e.des.0))
-    e.colnames <- c(e.colnames, cnames)
+    e.colnames.blocks[[i]] <- cnames
 
     if (sc.pred$data$specs$effect == "time") {
       trname <- unlist(purrr::map(stringr::str_split(rownames(e.des$e.des.0)[1], "\\."), 1))
       rnames <- paste(trname, as.character(c(1:nrow(e.des$e.des.1))), sep = ".")
-      e1.rownames <- c(e1.rownames, rnames)
+      e1.rownames.blocks[[i]] <- rnames
     }
 
-    e.des.0 <- Matrix::bdiag(e.des.0, e.des$e.des.0)
-    e.des.1 <- Matrix::bdiag(e.des.1, e.des$e.des.1)
+    e.des.0.blocks[[i]] <- e.des$e.des.0
+    e.des.1.blocks[[i]] <- e.des$e.des.1
   }
+
+  w.star <- do.call(c, w.star.blocks)
+  index.w <- do.call(c, index.w.blocks)
+  rho.vec <- do.call(c, rho.vec.blocks)
+  Q.star <- do.call(c, Q.star.blocks)
+  Q2.star <- do.call(c, Q2.star.blocks)
+  f.id <- do.call(c, f.id.blocks)
+  e.res <- do.call(c, e.res.blocks)
+  u.names <- do.call(c, u.names.blocks)
+  e.rownames <- do.call(c, e.rownames.blocks)
+  e.colnames <- do.call(c, e.colnames.blocks)
+  e1.rownames <- do.call(c, e1.rownames.blocks)
+  u.des.0 <- do.call(Matrix::bdiag, u.des.0.blocks)
+  e.des.0 <- do.call(Matrix::bdiag, e.des.0.blocks)
+  e.des.1 <- do.call(Matrix::bdiag, e.des.1.blocks)
 
   # Create an index that selects all non-zero weights and additional covariates
   index <- c(index.w, rep(TRUE, KMI))
@@ -973,6 +1031,8 @@ scpi  <- function(data,
   rownames(e.des.0.na) <- e0.rnames
   rownames(e.des.1) <- e1.rnames
 
+  joint.e.lb <- joint.e.ub <- joint.e.1 <- NULL
+
   if (e.method == "gaussian" || e.method == "all") {
     pi.e   <- scpi.out(res = e.res.na, x = e.des.0.na, eval = e.des.1,
                        e.method = "gaussian", alpha = e.alpha / 2,
@@ -983,6 +1043,11 @@ scpi  <- function(data,
     e.ub.gau <- pi.e$ub
     e.mean <- pi.e$e.1
     e.var <- pi.e$e.2
+    if (e.lb.est == TRUE && e.ub.est == TRUE) {
+      joint.e.lb <- e.lb.gau
+      joint.e.ub <- e.ub.gau
+      joint.e.1 <- e.mean
+    }
 
     # Overwrite with user's input
     if (e.lb.est == FALSE) e.lb.gau <- e.bounds[, 1]
@@ -1050,18 +1115,21 @@ scpi  <- function(data,
     joint.bounds <- simultaneousPredGet(vsig, T1, nrow(P.na), I, u.alpha, e.alpha,
                                         e.res.na, e.des.0.na, e.des.1, w.lb.est, w.ub.est,
                                         w.bounds, w.constr.inf[[1]]["name"],
-                                        sc.pred$data$specs$effect, out.feat)
+                                        sc.pred$data$specs$effect, out.feat,
+                                        joint.e.lb, joint.e.ub, joint.e.1)
 
   } else if (sc.effect == "unit") { # joint across units
     joint.bounds <- simultaneousPredGet(vsig, nrow(P.na), nrow(P.na), I = 1, u.alpha, e.alpha,
                                         e.res.na, e.des.0.na, e.des.1, w.lb.est, w.ub.est, w.bounds,
-                                        w.constr.inf[[1]]["name"], sc.pred$data$specs$effect, out.feat)
+                                        w.constr.inf[[1]]["name"], sc.pred$data$specs$effect, out.feat,
+                                        joint.e.lb, joint.e.ub, joint.e.1)
 
   } else if (sc.effect == "time") { # joint within aggregate unit
     joint.bounds <- simultaneousPredGet(vsig, min(unlist(T1)), nrow(P.na), 1, u.alpha, e.alpha,
                                         e.res.na, e.des.0.na, e.des.1, w.lb.est, w.ub.est,
                                         w.bounds, w.constr.inf[[1]]["name"],
-                                        sc.pred$data$specs$effect, out.feat)
+                                        sc.pred$data$specs$effect, out.feat,
+                                        joint.e.lb, joint.e.ub, joint.e.1)
   }
 
   ML <- joint.bounds$ML

@@ -36,7 +36,9 @@ scpi(
 )
 }
 \arguments{
-\item{data}{a class 'scdata' object, obtained by calling \code{\link{scdata}}, or class 'scdataMulti' obtained via \code{\link{scdataMulti}}.}
+\item{data}{a class 'scdata' object, obtained by calling \code{\link{scdata}}, a class 'scdataMulti' obtained via
+\code{\link{scdataMulti}}, or a class 'scest' object obtained by calling \code{\link{scest}}. When a class 'scest'
+object is provided, \code{\link{scpi}} reuses its point estimates and skips the internal \code{\link{scest}} call.}
 
 \item{w.constr}{a list specifying the constraint set the estimated weights of the donors must belong to.
 \code{w.constr} can contain up to five elements:
@@ -130,7 +132,7 @@ by filling the other column with \code{NA}s.}
 \item{force.joint.PI.optim}{this option is here mostly for backward-compatibility. If FALSE (the default) it solves a separate optimization problem for each
 treated unit when it comes to quantify in-sample uncertainty as long as the weighting matrix \eqn{\mathbf{V}} is diagonal.
 If TRUE it solves a joint optimization problem for all treated units to quantify in-sample uncertainty. Both are valid approaches as
-we detail in the main paper (Cattaneo, Feng, Palomba, and Titiunik (2024)). The former is faster and less conservative.}
+we detail in the main paper (Cattaneo, Feng, Palomba, and Titiunik (2027)). The former is faster and less conservative.}
 
 \item{save.data}{a character specifying the name and the path of the saved dataframe containing the processed data used to produce the plot.}
 
@@ -217,7 +219,7 @@ The third list is labeled 'inference.results' and contains all the inference-rel
 The command implements estimation and inference procedures for Synthetic Control (SC) methods using least squares,
 lasso, ridge, or simplex-type constraints. Uncertainty is quantified using prediction
 intervals according to \insertCite{cattaneo2021methodological-JASA;textual}{scpi} and
-\insertCite{cattaneo2025methodological-RESTAT;textual}{scpi}. \code{\link{scpi}} returns the estimated
+\insertCite{cattaneo2027methodological-RESTAT;textual}{scpi}. \code{\link{scpi}} returns the estimated
 post-treatment series for the synthetic unit through the command \code{\link{scest}} and quantifies in-sample and
 out-of-sample uncertainty to provide confidence intervals
 for each point estimate.
@@ -352,11 +354,11 @@ result <- scpi(df, w.constr = list(lb = 0, dir = "==", p = "L1", Q = 1),
 \code{\link{scdata}}, \code{\link{scdataMulti}}, \code{\link{scest}}, \code{\link{scplot}}, \code{\link{scplotMulti}}
 }
 \author{
-Matias Cattaneo, Princeton University. \email{cattaneo@princeton.edu}.
+Matias D. Cattaneo, Princeton University. \email{matias.d.cattaneo@gmail.com}.
 
-Yingjie Feng, Tsinghua University. \email{fengyj@sem.tsinghua.edu.cn}.
+Yingjie Feng, Tsinghua University. \email{fengyingjiepku@gmail.com}.
 
-Filippo Palomba, Princeton University (maintainer). \email{fpalomba@princeton.edu}.
+Filippo Palomba, Princeton University. \email{filippo.palomba19@gmail.com}.
 
-Rocio Titiunik, Princeton University. \email{titiunik@princeton.edu}.
+Rocio Titiunik, Princeton University. \email{rocio.titiunik@gmail.com}.
 }

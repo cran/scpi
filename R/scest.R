@@ -5,7 +5,7 @@
 #' @description The command implements estimation procedures for Synthetic Control (SC) methods using least squares, lasso,
 #' ridge, or simplex-type constraints. For more information see
 #' \insertCite{cattaneo2021methodological-JASA;textual}{scpi} and
-#' \insertCite{cattaneo2025methodological-RESTAT;textual}{scpi}.
+#' \insertCite{cattaneo2027methodological-RESTAT;textual}{scpi}.
 #'
 #' Companion \href{https://www.stata.com/}{Stata} and \href{https://www.python.org/}{Python} packages are described in
 #' \insertCite{cattaneo2025software-JSS;textual}{scpi}.
@@ -152,13 +152,13 @@
 #' }}
 #' }
 #' @author
-#' Matias Cattaneo, Princeton University. \email{cattaneo@princeton.edu}.
+#' Matias D. Cattaneo, Princeton University. \email{matias.d.cattaneo@gmail.com}.
 #'
-#' Yingjie Feng, Tsinghua University. \email{fengyj@sem.tsinghua.edu.cn}.
+#' Yingjie Feng, Tsinghua University. \email{fengyingjiepku@gmail.com}.
 #'
-#' Filippo Palomba, Princeton University (maintainer). \email{fpalomba@princeton.edu}.
+#' Filippo Palomba, Princeton University. \email{filippo.palomba19@gmail.com}.
 #'
-#' Rocio Titiunik, Princeton University. \email{titiunik@princeton.edu}.
+#' Rocio Titiunik, Princeton University. \email{rocio.titiunik@gmail.com}.
 #'
 #' @references
 #'  \insertAllCited{}
@@ -361,7 +361,7 @@ scest <- function(data,
   } else if(class.type == 'scpi_data_multi') {
     
     i.lb <- 1
-    fit.pre <- c()
+    fit.pre.blocks <- vector("list", I)
     Yd.list <- mat2list(data$Y.donors)
     w.list <- mat2list(as.matrix(w), cols=FALSE)
     
@@ -375,8 +375,9 @@ scest <- function(data,
         fit.pre.i <- Yd.list[[i]] %*% w.list[[i]]
       }
       i.lb <- i.lb + sum(unlist(T0.features[[i]]), na.rm = TRUE)
-      fit.pre <- rbind(fit.pre, fit.pre.i)
+      fit.pre.blocks[[i]] <- fit.pre.i
     }
+    fit.pre <- do.call(rbind, fit.pre.blocks)
   }
   
   
@@ -402,6 +403,7 @@ scest <- function(data,
                  specs  = data$specs,
                  Y.pre  = data$Y.pre,
                  Y.post = data$Y.post,
+                 Y.donors = data$Y.donors,
                  Y.pre.agg = data$Y.pre,
                  Y.post.agg = data$Y.post.agg)
 
@@ -448,6 +450,7 @@ scest <- function(data,
                  Y.df = data$Y.df,
                  Y.pre = data$Y.pre,
                  Y.post = data$Y.post,
+                 Y.donors = data$Y.donors,
                  Y.pre.agg = Y.pre.agg,
                  Y.post.agg = Y.post.agg,
                  Z = Z,

@@ -6,7 +6,7 @@
 #' the data in the particular case of a single treated unit.
 #'
 #' The names of the output matrices follow the terminology proposed in \insertCite{cattaneo2021methodological-JASA;textual}{scpi} and
-#' \insertCite{cattaneo2025methodological-RESTAT;textual}{scpi}.
+#' \insertCite{cattaneo2027methodological-RESTAT;textual}{scpi}.
 #'
 #' Companion \href{https://www.stata.com/}{Stata} and \href{https://www.python.org/}{Python} packages are described in
 #' \insertCite{cattaneo2025software-JSS;textual}{scpi}.
@@ -37,8 +37,13 @@
 #' literature, we presume that once a unit is treated it remains treated forever. If treatment.var does not comply with this requirement
 #' the command would not work as expected!
 #' @param features a list containing the names of the feature variables used for estimation.
-#' If this option is not specified the default is \code{features = outcome.var}.
-#' @param cov.adj a list specifying the names of the covariates to be used for adjustment for each feature. If \code{outcome.var} is
+#' If this option is not specified the default is \code{features = outcome.var}. For multiple
+#' treated units, this can be a one-element list shared by all treated units or a named list
+#' with one element for each selected treated unit.
+#' @param cov.adj a list specifying the names of the covariates to be used for adjustment for each feature. For multiple
+#' treated units, this can be a shared \code{\link{scdata}}-style list or a named list with one element
+#' for each selected treated unit, where each element is a \code{\link{scdata}}-style list. Unnamed
+#' feature-specific entries are matched to that unit's features in order. If \code{outcome.var} is
 #' not in the variables specified in \code{features}, we force \code{cov.adj<-NULL}. See the \strong{Details} section for more.
 #' @param post.est a scalar specifying the number of post-treatment periods or a list specifying the periods
 #' for which treatment effects have to be computed for each treated unit. It is only effective when effect = "unit-time".
@@ -46,8 +51,10 @@
 #' @param donors.est a list specifying the donors units to be used. If the list has length 1, then all treated units share the same
 #' potential donors. Otherwise, if the user requires different donor pools for different treated units, the list must be of the same
 #' length of the number of treated units and each element has to be named with one treated unit's name as specified in id.var.
-#' @param constant a logical which controls the inclusion of a constant term across features. The default value is \code{FALSE}.
-#' @param cointegrated.data a logical that indicates if there is a belief that the data is cointegrated or not. The default value is \code{FALSE}.
+#' @param constant a logical which controls the inclusion of a constant term across features, or a named list
+#' of logicals with one element for each selected treated unit. The default value is \code{FALSE}.
+#' @param cointegrated.data a logical that indicates if there is a belief that the data is cointegrated or not,
+#' or a named list of logicals with one element for each selected treated unit. The default value is \code{FALSE}.
 #' @param effect a string indicating the type of treatment effect to be computed. Options are: 'unit-time', which estimates treatment effects for each
 #' treated unit- post treatment period combination; 'unit', which estimates the treatment effect for each unit by averaging post-treatment features over time;
 #' 'time', which estimates the average treatment effect on the treated at various horizons.
@@ -110,13 +117,13 @@
 #' }
 #'
 #' @author
-#' Matias Cattaneo, Princeton University. \email{cattaneo@princeton.edu}.
+#' Matias D. Cattaneo, Princeton University. \email{matias.d.cattaneo@gmail.com}.
 #'
-#' Yingjie Feng, Tsinghua University. \email{fengyj@sem.tsinghua.edu.cn}.
+#' Yingjie Feng, Tsinghua University. \email{fengyingjiepku@gmail.com}.
 #'
-#' Filippo Palomba, Princeton University (maintainer). \email{fpalomba@princeton.edu}.
+#' Filippo Palomba, Princeton University. \email{filippo.palomba19@gmail.com}.
 #'
-#' Rocio Titiunik, Princeton University. \email{titiunik@princeton.edu}.
+#' Rocio Titiunik, Princeton University. \email{rocio.titiunik@gmail.com}.
 #'
 #' @references
 #'  \insertAllCited{}
@@ -204,12 +211,11 @@ scdataMulti <- function(df,
   }
 
   if (is.null(features) == FALSE) {
-    if (is.list(features) == FALSE) {
-      stop("The argument features should be a list!")
-    }
-    if (length(features) > 1) {
-      if (!all(names(features) %in% units.est)) {
-        stop("The object features should be a list whose elements have the same name of the selected treated units!")
+    if (is.character(features) == TRUE) {
+      features <- list(features)
+    } else {
+      if (is.list(features) == FALSE) {
+        stop("The argument features should be a list!")
       }
     }
   } else {
@@ -280,29 +286,115 @@ scdataMulti <- function(df,
     units.est <- treated.units
   }
 
+  is.unit.option <- function(x) {
+    is.list(x) &&
+      length(x) == length(treated.units) &&
+      !is.null(names(x)) &&
+      setequal(names(x), treated.units)
+  }
+
+  validate.unit.option <- function(x, option.name) {
+    if (!is.unit.option(x)) {
+      stop(paste0("The object ", option.name,
+                  " should be a named list with one element for each selected treated unit!"))
+    }
+  }
+
+  normalize.cov.adj <- function(adj) {
+    if (is.null(adj)) {
+      return(NULL)
+    }
+    if (is.character(adj)) {
+      return(list(adj))
+    }
+    if (is.list(adj) == FALSE) {
+      stop("The argument cov.adj should be a list!")
+    }
+    return(adj)
+  }
+
+  validate.cov.adj <- function(adj) {
+    if (is.null(adj)) {
+      return(invisible(NULL))
+    }
+    if (is.list(adj) == FALSE) {
+      stop("The argument cov.adj should be a list!")
+    }
+    for (j in seq_len(length(adj))) {
+      cc <- adj[[j]]
+      if (!is.null(cc) && is.character(cc) == FALSE) {
+        stop("Each cov.adj equation should contain character entries!")
+      }
+      aux <- table(cc)
+
+      if (any(aux > 1)) {
+        stop(paste(c("Equation ", j, " contains more than once the same covariate!")))
+      }
+    }
+  }
+
   # Control covariates for adjustment and matching features
   if (is.null(cov.adj) == FALSE) {
-    cov.adj.list <- list()
-    for (i in treated.units) {
-      cov.adj.list[[i]] <- cov.adj
+    if (is.unit.option(cov.adj)) {
+      cov.adj.list <- lapply(cov.adj[treated.units], normalize.cov.adj)
+    } else {
+      cov.adj.list <- rep(list(normalize.cov.adj(cov.adj)), length(treated.units))
+      names(cov.adj.list) <- treated.units
     }
+    invisible(lapply(cov.adj.list, validate.cov.adj))
   } else {
     cov.adj.list <- rep(list(NULL), length(treated.units))
     names(cov.adj.list) <- treated.units
   }
-  if (length(features) == 1) {
+
+  if (is.list(features) && length(features) > 1) {
+    validate.unit.option(features, "features")
+    features.list <- features[treated.units]
+  } else {
     features.list <- rep(features, length(treated.units))
     names(features.list) <- treated.units
-  } else {
-    features.list <- features
+  }
+
+  for (treated.unit in treated.units) {
+    if (!is.null(cov.adj.list[[treated.unit]]) &&
+        length(cov.adj.list[[treated.unit]]) > 1 &&
+        is.null(names(cov.adj.list[[treated.unit]]))) {
+      if (length(cov.adj.list[[treated.unit]]) != length(features.list[[treated.unit]])) {
+        stop(paste0("When cov.adj is specified feature-by-feature for ", treated.unit,
+                    ", it should have one entry for each feature."))
+      }
+      names(cov.adj.list[[treated.unit]]) <- features.list[[treated.unit]]
+    }
   }
 
   # Control other boolean options and anticipation effect
-  constant.list <- rep(constant, length(treated.units))
-  names(constant.list) <- treated.units
+  if (is.list(constant)) {
+    validate.unit.option(constant, "constant")
+    if (!all(sapply(constant, function(x) is.logical(x) && length(x) == 1))) {
+      stop("The object constant should contain only logical entries!")
+    }
+    constant.list <- constant[treated.units]
+  } else {
+    if (is.logical(constant) == FALSE || length(constant) != 1) {
+      stop("The object constant should be a logical!")
+    }
+    constant.list <- rep(constant, length(treated.units))
+    names(constant.list) <- treated.units
+  }
 
-  cointegrated.data.list <- rep(cointegrated.data, length(treated.units))
-  names(cointegrated.data.list) <- treated.units
+  if (is.list(cointegrated.data)) {
+    validate.unit.option(cointegrated.data, "cointegrated.data")
+    if (!all(sapply(cointegrated.data, function(x) is.logical(x) && length(x) == 1))) {
+      stop("The object cointegrated.data should contain only logical entries!")
+    }
+    cointegrated.data.list <- cointegrated.data[treated.units]
+  } else {
+    if (is.logical(cointegrated.data) == FALSE || length(cointegrated.data) != 1) {
+      stop("The object cointegrated.data should be a logical!")
+    }
+    cointegrated.data.list <- rep(cointegrated.data, length(treated.units))
+    names(cointegrated.data.list) <- treated.units
+  }
 
   anticipation.list <- rep(anticipation, length(treated.units))
   names(anticipation.list) <- treated.units
@@ -376,7 +468,15 @@ scdataMulti <- function(df,
   rownames.Y.donors <- c()
   colnames.Y.donors <- c()
 
-  tr.count <- 1
+  A.blocks <- list()
+  B.blocks <- list()
+  C.blocks <- list()
+  P.blocks <- list()
+  Pd.blocks <- list()
+  Y.donors.blocks <- list()
+  Y.pre.blocks <- list()
+  Y.post.blocks <- list()
+
   for (treated.unit in treated.units) {
 
     # handle numeric identifier for treated units
@@ -527,6 +627,10 @@ scdataMulti <- function(df,
       P.tr <- t(as.matrix(colMeans(P.tr)))
       rownames(P.tr) <- paste(treated.unit,
                               scdata.out$specs$period.post[ceiling(scdata.out$specs$T1.outcome / 2)], sep = ".")
+      if (!is.null(P.diff)) {
+        rownames(P.diff) <- rownames(P.tr)
+        colnames(P.diff) <- colnames(P.tr)
+      }
 
     }
 
@@ -553,36 +657,14 @@ scdataMulti <- function(df,
       colnames(P.tr) <- c("aux_id", colnames(P.tr)[-1])
     }
 
-    if (tr.count == 1) {
-      A.stacked <- A.tr
-      B.stacked <- B.tr
-      C.stacked <- C.tr
-      if (effect == "time") {
-        P.stacked <- as.data.frame(P.tr)
-      } else {
-        P.stacked <- P.tr
-      }
-
-      Pd.stacked <- P.diff
-      Y.donors.stacked <- Y.donors.tr
-      Y.pre.stacked <- Y.pre.tr
-      Y.post.stacked <- Y.post.tr
-
-    } else {
-      A.stacked <- rbind(A.stacked, A.tr)
-      B.stacked <- Matrix::bdiag(B.stacked, B.tr)
-      C.stacked <- Matrix::bdiag(C.stacked, C.tr)
-      if (effect == "time") {
-        P.stacked <- merge(P.stacked, as.data.frame(P.tr), by = "aux_id", all = TRUE)
-      } else {
-        P.stacked <- Matrix::bdiag(P.stacked, P.tr)
-      }
-      if (is.null(Pd.stacked) == FALSE) Pd.stacked <- Matrix::bdiag(Pd.stacked, P.diff)
-
-      Y.donors.stacked <- Matrix::bdiag(Y.donors.stacked, Y.donors.tr)
-      Y.pre.stacked <- rbind(Y.pre.stacked, Y.pre.tr)
-      Y.post.stacked <- rbind(Y.post.stacked, Y.post.tr)
-    }
+    A.blocks[[treated.unit]] <- A.tr
+    B.blocks[[treated.unit]] <- B.tr
+    C.blocks[[treated.unit]] <- C.tr
+    P.blocks[[treated.unit]] <- if (effect == "time") as.data.frame(P.tr) else P.tr
+    if (!is.null(P.diff)) Pd.blocks[[treated.unit]] <- P.diff
+    Y.donors.blocks[[treated.unit]] <- Y.donors.tr
+    Y.pre.blocks[[treated.unit]] <- Y.pre.tr
+    Y.post.blocks[[treated.unit]] <- Y.post.tr
 
     J.list[[treated.unit]] <- scdata.out$specs$J
     K.list[[treated.unit]] <- scdata.out$specs$K
@@ -594,8 +676,20 @@ scdataMulti <- function(df,
     T1.list[[treated.unit]] <- scdata.out$specs$T1.outcome
     out.in.features.list[[treated.unit]] <- scdata.out$specs$out.in.features
     donors.list[[treated.unit]] <- scdata.out$specs$donors.units
-    tr.count <- tr.count + 1
   }
+
+  A.stacked <- do.call(rbind, A.blocks)
+  B.stacked <- do.call(Matrix::bdiag, B.blocks)
+  C.stacked <- do.call(Matrix::bdiag, C.blocks)
+  if (effect == "time") {
+    P.stacked <- Reduce(function(x, y) merge(x, y, by = "aux_id", all = TRUE), P.blocks)
+  } else {
+    P.stacked <- do.call(Matrix::bdiag, P.blocks)
+  }
+  Pd.stacked <- if (length(Pd.blocks) > 0) do.call(Matrix::bdiag, Pd.blocks) else NULL
+  Y.donors.stacked <- do.call(Matrix::bdiag, Y.donors.blocks)
+  Y.pre.stacked <- do.call(rbind, Y.pre.blocks)
+  Y.post.stacked <- do.call(rbind, Y.post.blocks)
 
   # Handle names of stacked matrices
   rownames(A.stacked) <- rownames.A
@@ -624,12 +718,14 @@ scdataMulti <- function(df,
     P.stacked <- P.stacked[, colnames.B, drop = FALSE]
   }
   if (is.null(Pd.stacked) == FALSE) {
-    colnames(Pd.stacked) <- colnames.P
-    rownames(Pd.stacked) <- rownames.P
+    colnames(Pd.stacked) <- unlist(lapply(Pd.blocks, colnames))
+    rownames(Pd.stacked) <- unlist(lapply(Pd.blocks, rownames))
+    Pd.cols <- c(colnames.B, colnames.C)
+    Pd.cols <- Pd.cols[Pd.cols %in% colnames(Pd.stacked)]
     if (out.in.features.list[[1]] == TRUE) {
-      Pd.stacked <- Pd.stacked[, c(colnames.B, colnames.C), drop = FALSE]
+      Pd.stacked <- Pd.stacked[, Pd.cols, drop = FALSE]
     } else {
-      Pd.stacked <- Pd.stacked[, colnames.B, drop = FALSE]
+      Pd.stacked <- Pd.stacked[, colnames.B[colnames.B %in% colnames(Pd.stacked)], drop = FALSE]
     }
   }
 

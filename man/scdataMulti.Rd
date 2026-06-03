@@ -41,12 +41,18 @@ literature, we presume that once a unit is treated it remains treated forever. I
 the command would not work as expected!}
 
 \item{features}{a list containing the names of the feature variables used for estimation.
-If this option is not specified the default is \code{features = outcome.var}.}
+If this option is not specified the default is \code{features = outcome.var}. For multiple
+treated units, this can be a one-element list shared by all treated units or a named list
+with one element for each selected treated unit.}
 
-\item{cov.adj}{a list specifying the names of the covariates to be used for adjustment for each feature. If \code{outcome.var} is
+\item{cov.adj}{a list specifying the names of the covariates to be used for adjustment for each feature. For multiple
+treated units, this can be a shared \code{\link{scdata}}-style list or a named list with one element
+for each selected treated unit, where each element is a \code{\link{scdata}}-style list. Unnamed
+feature-specific entries are matched to that unit's features in order. If \code{outcome.var} is
 not in the variables specified in \code{features}, we force \code{cov.adj<-NULL}. See the \strong{Details} section for more.}
 
-\item{cointegrated.data}{a logical that indicates if there is a belief that the data is cointegrated or not. The default value is \code{FALSE}.}
+\item{cointegrated.data}{a logical that indicates if there is a belief that the data is cointegrated or not,
+or a named list of logicals with one element for each selected treated unit. The default value is \code{FALSE}.}
 
 \item{post.est}{a scalar specifying the number of post-treatment periods or a list specifying the periods
 for which treatment effects have to be computed for each treated unit. It is only effective when effect = "unit-time".}
@@ -63,7 +69,8 @@ length of the number of treated units and each element has to be named with one 
 treated unit- post treatment period combination; 'unit', which estimates the treatment effect for each unit by averaging post-treatment features over time;
 'time', which estimates the average treatment effect on the treated at various horizons.}
 
-\item{constant}{a logical which controls the inclusion of a constant term across features. The default value is \code{FALSE}.}
+\item{constant}{a logical which controls the inclusion of a constant term across features, or a named list
+of logicals with one element for each selected treated unit. The default value is \code{FALSE}.}
 
 \item{verbose}{if \code{TRUE} prints additional information in the console.}
 
@@ -112,7 +119,7 @@ in the general case of multiple treated units and staggered adoption. It is a ge
 the data in the particular case of a single treated unit.
 
 The names of the output matrices follow the terminology proposed in \insertCite{cattaneo2021methodological-JASA;textual}{scpi} and
-\insertCite{cattaneo2025methodological-RESTAT;textual}{scpi}.
+\insertCite{cattaneo2027methodological-RESTAT;textual}{scpi}.
 
 Companion \href{https://www.stata.com/}{Stata} and \href{https://www.python.org/}{Python} packages are described in
 \insertCite{cattaneo2025software-JSS;textual}{scpi}.
@@ -173,11 +180,11 @@ df.unit <- scdataMulti(datager, id.var = id.var, outcome.var = outcome.var,
 \code{\link{scdata}}, \code{\link{scest}}, \code{\link{scpi}}, \code{\link{scplot}}, \code{\link{scplotMulti}}
 }
 \author{
-Matias Cattaneo, Princeton University. \email{cattaneo@princeton.edu}.
+Matias D. Cattaneo, Princeton University. \email{matias.d.cattaneo@gmail.com}.
 
-Yingjie Feng, Tsinghua University. \email{fengyj@sem.tsinghua.edu.cn}.
+Yingjie Feng, Tsinghua University. \email{fengyingjiepku@gmail.com}.
 
-Filippo Palomba, Princeton University (maintainer). \email{fpalomba@princeton.edu}.
+Filippo Palomba, Princeton University. \email{filippo.palomba19@gmail.com}.
 
-Rocio Titiunik, Princeton University. \email{titiunik@princeton.edu}.
+Rocio Titiunik, Princeton University. \email{rocio.titiunik@gmail.com}.
 }
