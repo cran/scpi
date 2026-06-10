@@ -1,5 +1,5 @@
-2cf96b8ee93f6dbaa4218fa4d52371e6 *DESCRIPTION
-1fce580ae55ec7c53173d7c6d63baacf *NAMESPACE
+89f619f05b90a97cf3b80362fb8b8620 *DESCRIPTION
+d5b871491f941f9b1b353b7f88262f7f *NAMESPACE
 ef0d0cc9158d0dda710c30436e2f0cd1 *R/data.R
 5c9ea60d8e2a3e6ad93b0a0a27068943 *R/scdata.R
 8c2a0821f45cecd773ab7938b420be38 *R/scdataMulti.R
@@ -7,13 +7,13 @@ cfa155e51600c24a6811182f739811cc *R/scdataMulti_methods.R
 d4fbd7912ecb50e5b681408e3c0cfa7e *R/scdata_methods.R
 502ee7493b0464bb6adfbb76adc79a76 *R/scest.R
 168be4f025fa35b8857213a3379c40c1 *R/scest_methods.R
-f1bc228e7868a6f6e1f0582c24a8ec11 *R/scpi-package.R
+b85e3e29c827e8b2474051434b7838b1 *R/scpi-package.R
 88ff3d9b70ab0be96817cfd71b78879f *R/scpi.R
 b349f345ce20caf4a3b1ccedce56186e *R/scpi_methods.R
 97399cd743954f4dcc3c79f6e0df3408 *R/scplot.R
 075237fec265a68cbeb2cbede50f755d *R/scplotMulti.R
 0ea0f650b528611c18a94cf461fc406d *R/supporting_functions.R
-b346046abf9ece38503fc6a59864d303 *build/partial.rdb
+937b766f2d587ef7a09534b07c68a0c6 *build/partial.rdb
 aa10fb4321cf467e7af812d7529b1e23 *data/scpi_germany.RData
 9f0da08316372f471ba2a0bde5dd9124 *inst/CITATION
 103c8783433968459049636999d2fd3b *inst/REFERENCES.bib
